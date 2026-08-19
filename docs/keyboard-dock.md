@@ -7,6 +7,7 @@ Tested on: ASUS Zenbook Duo UX8406CA
 Kernel: 7.1.8-arch1-3
 Omarchy: 4.0.0-1
 Hyprland: 0.56.2
+Applicability: Hyprland policy; USB dock detection is Linux universal.
 
 Problem: eDP-2 remains enabled and lit when the keyboard covers it.
 Cause: The kernel exposes the dock transition but does not apply display policy.

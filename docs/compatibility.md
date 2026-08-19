@@ -3,6 +3,10 @@
 This is a current-state inventory, not a promise for every firmware or future
 software version.
 
+For the distinction between Linux-wide device support and the particular
+Hyprland/Omarchy integrations shipped here, see the
+[workaround applicability matrix](applicability.md).
+
 ## Works without repository workarounds
 
 - Both OLED panels, including 2880×1800 at 120 Hz

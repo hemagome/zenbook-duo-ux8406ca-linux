@@ -8,6 +8,7 @@ Omarchy: 4.0.0-1
 Hyprland: 0.56.2
 USB HID: 0b05:1bf2, interface 4
 Bluetooth HID: 0b05:1bf3, vendor collection FF31:0076
+Applicability: Linux universal HID control; Omarchy only provides the current OSD.
 ```
 
 Problem: The keyboard has four backlight levels, but it does not expose a

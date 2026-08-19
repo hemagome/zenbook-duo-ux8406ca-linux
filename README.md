@@ -82,6 +82,7 @@ hyprctl configerrors
 
 - [Hardware and inspected system](docs/hardware.md)
 - [Detailed compatibility](docs/compatibility.md)
+- [Workaround applicability by software layer](docs/applicability.md)
 - [Vertical dual-screen layout](docs/dual-screen-layout.md)
 - [Independent brightness](docs/independent-brightness.md)
 - [Bluetooth keyboard pairing](docs/bluetooth-keyboard.md)
@@ -104,6 +105,7 @@ Tested on:
 Kernel:
 Omarchy:
 Hyprland:
+Applicability:
 
 Problem:
 Cause:
@@ -111,6 +113,12 @@ Workaround:
 How to revert:
 Upstream status:
 ```
+
+`Applicability` identifies the narrowest environment required by the supplied
+implementation. It does not mean the underlying hardware problem is confined
+to that environment. See the [applicability matrix](docs/applicability.md) for
+portable mechanisms and the integrations that would need replacement on
+another desktop or distribution.
 
 Do not install historic model-specific repositories wholesale. A workaround
 for an older UX8406 variant or Linux 6.x is evidence to investigate, not proof

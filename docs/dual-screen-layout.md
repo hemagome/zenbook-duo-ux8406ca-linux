@@ -7,6 +7,7 @@ Tested on: ASUS Zenbook Duo UX8406CA
 Kernel: 7.1.8-arch1-3
 Omarchy: 4.0.0-1
 Hyprland: 0.56.2
+Applicability: Hyprland; the reusable Lua file follows Omarchy's config structure.
 
 Problem: Automatic placement arranged the internal panels horizontally.
 Cause: Generic automatic monitor placement does not know the physical chassis layout.

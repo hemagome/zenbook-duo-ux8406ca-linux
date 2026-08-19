@@ -8,6 +8,7 @@ Omarchy: 4.0.0-1
 Hyprland: 0.56.2
 Keyboard USB ID: 0b05:1bf2
 Keyboard Bluetooth HID ID: 0b05:1bf3
+Applicability: Linux universal HID core; individual desktop actions vary below.
 ```
 
 Problem: When docked over `eDP-2`, both `F1` and `Fn+F1` generate `KEY_F1`.
@@ -47,6 +48,10 @@ proprietary F5/F6 events to the tested
 [independent-display brightness](independent-brightness.md) workaround.
 
 ## Omarchy actions: F9 and F11
+
+Applicability: F9 uses Omarchy's PipeWire mute/OSD helper and F11 uses the
+Omarchy shell. Only detection of their HID reports and F9 LED synchronization
+are desktop-independent.
 
 The remaining useful vendor reports are handled by the Omarchy backend:
 

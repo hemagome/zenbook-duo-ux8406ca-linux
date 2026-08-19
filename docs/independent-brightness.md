@@ -7,6 +7,7 @@ Tested on: ASUS Zenbook Duo UX8406CA
 Kernel: 7.1.8-arch1-3
 Omarchy: 4.0.0-1
 Hyprland: 0.56.2
+Applicability: Omarchy + Hyprland; direct backlight control is Linux universal.
 
 Problem: Omarchy's slider adjusted intel_backlight for either focused monitor.
 Cause: The generic resolver sees several backlights but has no panel mapping.
