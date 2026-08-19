@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <hidapi.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define ASUS_VENDOR_ID 0x0b05
@@ -22,7 +23,9 @@ static int is_control_collection(const struct hid_device_info *device) {
 }
 
 static void usage(const char *program) {
-    fprintf(stderr, "Usage: %s media|function|listen\n", program);
+    fprintf(stderr,
+            "Usage: %s media|function|listen|backlight <0|1|2|3>\n",
+            program);
 }
 
 int main(int argc, char **argv) {
@@ -33,20 +36,28 @@ int main(int argc, char **argv) {
     struct hid_device_info *devices = NULL;
     struct hid_device_info *item = NULL;
     hid_device *keyboard = NULL;
-    const char *mode;
+    const char *command;
     int result = 1;
 
-    if (argc != 2) {
+    if (argc < 2 || argc > 3) {
         usage(argv[0]);
         return 2;
     }
 
-    mode = argv[1];
-    if (strcmp(mode, "media") == 0) {
+    command = argv[1];
+    if (strcmp(command, "media") == 0 && argc == 2) {
         report[3] = 0x00;
-    } else if (strcmp(mode, "function") == 0) {
+    } else if (strcmp(command, "function") == 0 && argc == 2) {
         report[3] = 0x01;
-    } else if (strcmp(mode, "listen") != 0) {
+    } else if (strcmp(command, "listen") == 0 && argc == 2) {
+        /* No output report is sent in listener mode. */
+    } else if (strcmp(command, "backlight") == 0 && argc == 3 &&
+               strlen(argv[2]) == 1 && argv[2][0] >= '0' && argv[2][0] <= '3') {
+        report[1] = 0xba;
+        report[2] = 0xc5;
+        report[3] = 0xc4;
+        report[4] = (unsigned char)(argv[2][0] - '0');
+    } else {
         usage(argv[0]);
         return 2;
     }
@@ -79,15 +90,28 @@ int main(int argc, char **argv) {
         goto out;
     }
 
-    if (strcmp(mode, "listen") == 0) {
+    if (strcmp(command, "listen") == 0) {
         unsigned char input[64];
+        unsigned char active_command = 0x00;
         int length;
 
         while ((length = hid_read(keyboard, input, sizeof(input))) >= 0) {
-            if (length >= 2 && input[0] == 0x5a && input[1] == 0x4e) {
-                puts("toggle");
-                fflush(stdout);
+            if (length < 2 || input[0] != 0x5a)
+                continue;
+            if (input[1] == 0x00) {
+                active_command = 0x00;
+                continue;
             }
+            if (input[1] == active_command)
+                continue;
+            active_command = input[1];
+            if (active_command == 0x4e)
+                puts("toggle");
+            else if (active_command == 0xc7)
+                puts("backlight");
+            else
+                continue;
+            fflush(stdout);
         }
         fwprintf(stderr, L"ux8406ca-fn-send: HID listener ended: %ls\n",
                  hid_error(keyboard));
@@ -102,7 +126,10 @@ int main(int argc, char **argv) {
         goto out;
     }
 
-    printf("ux8406ca-fn-send: applied %s-default mode\n", mode);
+    if (strcmp(command, "backlight") == 0)
+        printf("ux8406ca-fn-send: applied keyboard backlight level %s\n", argv[2]);
+    else
+        printf("ux8406ca-fn-send: applied %s-default mode\n", command);
     result = 0;
 
 out:

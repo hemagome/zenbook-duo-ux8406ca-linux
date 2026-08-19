@@ -24,6 +24,10 @@ regression is reproduced and documented with affected versions.
 2. Omarchy selected the first likely internal backlight even when its UI passed
    the focused monitor. The [brightness wrapper](independent-brightness.md)
    provides a per-monitor candidate directory.
+3. The detachable keyboard's Fn Lock and backlight use vendor HID reports that
+   are not exposed as standard Linux controls. The [Fn-mode](function-keys.md)
+   and [keyboard-backlight](keyboard-backlight.md) helper handles both USB and
+   Bluetooth without a global key remapper.
 
 ## Requires an event-driven workaround
 

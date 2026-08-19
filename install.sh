@@ -24,7 +24,7 @@ Usage: ./install.sh [--layout] [--brightness] [--keyboard-dock] [--fn-mode] [--a
   --brightness  Install independent Omarchy brightness selection
   --keyboard-dock
                 Toggle eDP-2 when the pogo-pin keyboard is docked or removed
-  --fn-mode     Initialize the docked keyboard's native Fn layer
+  --fn-mode     Install native Fn Lock and keyboard-backlight controls
   --all         Install all workarounds
   --list        Show available workarounds
 EOF
@@ -219,10 +219,14 @@ if (( fn_mode )); then
     "$HOME/.local/libexec/ux8406ca-fn-send" ux8406ca-fn-send
   install_managed_file fn-mode "$repo_dir/scripts/ux8406ca-fn-mode" \
     "$HOME/.local/bin/ux8406ca-fn-mode" ux8406ca-fn-mode
-  chmod 0755 "$HOME/.local/libexec/ux8406ca-fn-send" "$HOME/.local/bin/ux8406ca-fn-mode"
+  install_managed_file fn-mode "$repo_dir/scripts/ux8406ca-keyboard-backlight" \
+    "$HOME/.local/bin/ux8406ca-keyboard-backlight" ux8406ca-keyboard-backlight
+  chmod 0755 "$HOME/.local/libexec/ux8406ca-fn-send" \
+    "$HOME/.local/bin/ux8406ca-fn-mode" "$HOME/.local/bin/ux8406ca-keyboard-backlight"
   install_fn_udev_rule
   ensure_marked_autostart fn-mode fn-mode "$repo_dir/configs/omarchy/fn-mode-autostart.lua"
   "$HOME/.local/bin/ux8406ca-fn-mode" apply
+  "$HOME/.local/bin/ux8406ca-keyboard-backlight" apply
 fi
 
 printf 'Done. Apply and validate with: hyprctl reload && hyprctl configerrors\n'

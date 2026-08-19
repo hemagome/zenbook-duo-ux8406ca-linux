@@ -38,6 +38,7 @@ BlueZ or firmware updates.
 | Disable lower panel when keyboard covers it | 🛠 Workaround required | Event-driven pogo-pin USB detection |
 | Keyboard Fn layer | 🛠 Workaround required | Native HID mode initialization for USB `1bf2` and Bluetooth `1bf3` |
 | Fn Lock through `Fn+Esc` | 🛠 Workaround required | Native USB/Bluetooth vendor-report listener |
+| Detachable-keyboard backlight / F4 | 🛠 Workaround required | Four native levels over USB and Bluetooth |
 | Automatic touch mapping validation | ⚠️ Partial / needs validation | Input exists; mapping across layout changes needs testing |
 
 Status legend: ✅ Works upstream · 🛠 Workaround required · ⚠️ Partial / needs
@@ -83,6 +84,7 @@ hyprctl configerrors
 - [Bluetooth keyboard pairing](docs/bluetooth-keyboard.md)
 - [Keyboard dock investigation](docs/keyboard-dock.md)
 - [Function row and Fn mode](docs/function-keys.md)
+- [Detachable-keyboard backlight](docs/keyboard-backlight.md)
 - [Troubleshooting and rollback](docs/troubleshooting.md)
 - [Installer design](install/README.md)
 

@@ -7,6 +7,7 @@ readonly keyboard_product="1bf2"
 readonly bluetooth_product="1BF3"
 readonly config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/ux8406ca-linux"
 readonly config_file="$config_dir/fn-mode"
+readonly backlight_file="$config_dir/keyboard-backlight"
 readonly helper="${UX8406CA_FN_HELPER:-$HOME/.local/libexec/ux8406ca-fn-send}"
 readonly runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
 readonly lock_file="$runtime_dir/ux8406ca-fn-mode.lock"
@@ -63,6 +64,59 @@ save_mode() {
   mv -f -- "$temp" "$config_file"
 }
 
+configured_backlight() {
+  local level="1"
+  if [[ -r "$backlight_file" ]]; then
+    read -r level <"$backlight_file"
+  fi
+  case "$level" in
+    0|1|2|3) printf '%s\n' "$level" ;;
+    *)
+      log "invalid level in $backlight_file; using 1" >&2
+      printf '1\n'
+      ;;
+  esac
+}
+
+save_backlight() {
+  local level="$1" temp
+  mkdir -p "$config_dir"
+  temp="$(mktemp "$config_dir/keyboard-backlight.XXXXXX")"
+  printf '%s\n' "$level" >"$temp"
+  chmod 0600 "$temp"
+  mv -f -- "$temp" "$backlight_file"
+}
+
+show_backlight_osd() {
+  local level="$1"
+  command -v omarchy-osd >/dev/null 2>&1 || return 0
+  omarchy-osd -i keyboard -p "$(( level * 100 / 3 ))" >/dev/null 2>&1 || true
+}
+
+apply_backlight() {
+  local level
+  level="$(configured_backlight)"
+  if ! keyboard_is_available; then
+    log "keyboard is disconnected; saved backlight level $level will apply when connected"
+    return 0
+  fi
+  [[ -x "$helper" ]] || { log "missing helper: $helper" >&2; return 1; }
+  "$helper" backlight "$level"
+}
+
+set_backlight() {
+  local level="$1"
+  save_backlight "$level"
+  apply_backlight && show_backlight_osd "$level"
+}
+
+cycle_backlight() {
+  local level
+  level="$(configured_backlight)"
+  level=$(( (level + 1) % 4 ))
+  set_backlight "$level"
+}
+
 apply_mode() {
   local mode
   mode="$(configured_mode)"
@@ -111,14 +165,18 @@ watch_events() {
   while true; do
     if keyboard_is_available; then
       apply_mode || log "apply failed"
+      apply_backlight || log "keyboard backlight restore failed"
       while IFS= read -r event; do
-        if [[ "$event" == "toggle" ]]; then
-          if [[ "$(configured_mode)" == "media" ]]; then
-            set_mode function
-          else
-            set_mode media
-          fi
-        fi
+        case "$event" in
+          toggle)
+            if [[ "$(configured_mode)" == "media" ]]; then
+              set_mode function
+            else
+              set_mode media
+            fi
+            ;;
+          backlight) cycle_backlight ;;
+        esac
       done < <("$helper" listen)
       log "Fn listener stopped; waiting for keyboard connection"
     fi
@@ -133,6 +191,15 @@ case "${1:-}" in
     if [[ "$(configured_mode)" == "media" ]]; then set_mode function; else set_mode media; fi
     ;;
   apply) apply_mode ;;
+  backlight)
+    case "${2:-}" in
+      0|1|2|3) set_backlight "$2" ;;
+      cycle) cycle_backlight ;;
+      apply) apply_backlight ;;
+      status) printf 'level=%s\n' "$(configured_backlight)" ;;
+      *) printf 'Usage: %s backlight 0|1|2|3|cycle|apply|status\n' "${0##*/}" >&2; exit 2 ;;
+    esac
+    ;;
   status)
     printf 'configured=%s\n' "$(configured_mode)"
     if keyboard_is_docked; then
@@ -145,7 +212,7 @@ case "${1:-}" in
     ;;
   --watch) watch_events ;;
   *)
-    printf 'Usage: %s media|function|toggle|apply|status|--watch\n' "${0##*/}" >&2
+    printf 'Usage: %s media|function|toggle|apply|status|backlight ...|--watch\n' "${0##*/}" >&2
     exit 2
     ;;
 esac

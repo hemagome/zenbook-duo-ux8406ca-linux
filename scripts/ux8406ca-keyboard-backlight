@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -u
+
+readonly controller="${UX8406CA_FN_CONTROLLER:-$HOME/.local/bin/ux8406ca-fn-mode}"
+
+[[ -x "$controller" ]] || {
+  printf 'ux8406ca-keyboard-backlight: missing controller: %s\n' "$controller" >&2
+  exit 1
+}
+
+exec "$controller" backlight "$@"

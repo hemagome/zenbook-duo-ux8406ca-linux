@@ -229,6 +229,7 @@ if (( fn_mode )); then
   stop_fn_mode
   remove_marked_autostart fn-mode "$repo_dir/configs/omarchy/fn-mode-autostart.lua"
   restore_managed_file "$HOME/.local/bin/ux8406ca-fn-mode" ux8406ca-fn-mode
+  restore_managed_file "$HOME/.local/bin/ux8406ca-keyboard-backlight" ux8406ca-keyboard-backlight
   restore_managed_file "$HOME/.local/libexec/ux8406ca-fn-send" ux8406ca-fn-send
   remove_fn_udev_rule
 fi
