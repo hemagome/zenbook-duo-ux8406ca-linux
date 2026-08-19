@@ -15,6 +15,8 @@ readonly emoji_helper="${UX8406CA_EMOJI_HELPER:-/usr/share/omarchy/bin/omarchy-s
 readonly runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
 readonly lock_file="$runtime_dir/ux8406ca-fn-mode.lock"
 readonly pid_file="$runtime_dir/ux8406ca-fn-mode.pid"
+udev_monitor_pid=""
+udev_monitor_fd=""
 
 log() {
   printf 'ux8406ca-fn-mode: %s\n' "$*"
@@ -202,20 +204,69 @@ set_mode() {
   apply_mode
 }
 
-wait_for_device_add() {
-  local action=""
+cleanup_udev_monitor() {
+  local pid="$udev_monitor_pid" fd="$udev_monitor_fd"
 
-  while IFS= read -r line; do
+  udev_monitor_pid=""
+  udev_monitor_fd=""
+
+  # The file descriptor number comes from Bash's coproc array and is numeric.
+  # Closing it first lets udevadm stop cleanly before the fallback kill.
+  if [[ "$fd" =~ ^[0-9]+$ ]]; then
+    eval "exec ${fd}<&-" 2>/dev/null || true
+  fi
+  if [[ "$pid" =~ ^[0-9]+$ ]]; then
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+  fi
+}
+
+wait_for_hidraw_add() {
+  local action="" line
+
+  cleanup_udev_monitor
+  coproc UX8406CA_UDEV_MONITOR {
+    stdbuf -oL udevadm monitor --udev --property \
+      --subsystem-match=hidraw 9>&- 2>/dev/null
+  }
+  udev_monitor_pid="${UX8406CA_UDEV_MONITOR_PID:-}"
+  udev_monitor_fd="${UX8406CA_UDEV_MONITOR[0]:-}"
+
+  if [[ ! "$udev_monitor_pid" =~ ^[0-9]+$ ||
+        ! "$udev_monitor_fd" =~ ^[0-9]+$ ]]; then
+    cleanup_udev_monitor
+    return 1
+  fi
+
+  while IFS= read -r -u "$udev_monitor_fd" line; do
     case "$line" in
       ACTION=*) action="${line#ACTION=}" ;;
       "")
         if [[ "$action" == "add" ]]; then
+          cleanup_udev_monitor
           return 0
         fi
         action=""
         ;;
     esac
-  done < <(stdbuf -oL udevadm monitor --udev --property 9>&- 2>/dev/null)
+  done
+
+  cleanup_udev_monitor
+  return 1
+}
+
+restore_keyboard_state() {
+  local attempt
+
+  # hidraw nodes and their uaccess ACLs can appear a little after the first
+  # udev event. Retry the vendor reports instead of losing initialization until
+  # the next physical reconnect.
+  for (( attempt = 1; attempt <= 5; attempt++ )); do
+    apply_mode && apply_backlight && apply_microphone_led && return 0
+    sleep 0.2
+  done
+
+  return 1
 }
 
 watch_events() {
@@ -227,14 +278,12 @@ watch_events() {
     return 0
   fi
   printf '%s\n' "$$" >"$pid_file"
-  trap 'rm -f -- "$pid_file"' EXIT
+  trap 'cleanup_udev_monitor; rm -f -- "$pid_file"' EXIT
   trap 'exit 0' INT TERM
 
   while true; do
     if keyboard_is_available; then
-      apply_mode || log "apply failed"
-      apply_backlight || log "keyboard backlight restore failed"
-      apply_microphone_led || log "microphone LED restore failed"
+      restore_keyboard_state || log "keyboard state restore failed"
       while IFS= read -r event; do
         case "$event" in
           toggle)
@@ -251,9 +300,16 @@ watch_events() {
           emoji) toggle_emoji_picker ;;
         esac
       done < <("$helper" listen)
-      log "Fn listener stopped; waiting for keyboard connection"
+      log "Fn listener stopped"
+      if keyboard_is_available; then
+        # A transient hidraw read error does not necessarily mean the device
+        # disappeared. Reopen it before waiting for another physical attach.
+        sleep 0.4
+        continue
+      fi
+      log "waiting for keyboard connection"
     fi
-    wait_for_device_add
+    wait_for_hidraw_add || sleep 0.4
     sleep 0.4
   done
 }
