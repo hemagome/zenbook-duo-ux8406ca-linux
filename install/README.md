@@ -9,6 +9,7 @@ Available components:
 |---|---|
 | `layout` | `~/.config/hypr/monitors.lua` |
 | `brightness` | `~/.local/bin/omarchy-brightness-display`, two symlink directories, one marked block in `~/.config/hypr/hyprland.lua` |
+| `keyboard-dock` | `~/.local/bin/ux8406ca-keyboard-dock`, one marked block in `~/.config/hypr/autostart.lua` |
 
 ## Guarantees
 

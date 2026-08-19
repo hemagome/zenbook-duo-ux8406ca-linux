@@ -35,7 +35,7 @@ BlueZ or firmware updates.
 | Vertical dual-screen layout | 🛠 Workaround required | Explicit Hyprland positions and scale |
 | Independent brightness in Omarchy UI | 🛠 Workaround required | Per-monitor backlight wrapper |
 | Detachable Bluetooth keyboard | ✅ Works upstream | Pair and trust with BlueZ |
-| Disable lower panel when keyboard covers it | ❌ Not working | Detection mechanism still under investigation |
+| Disable lower panel when keyboard covers it | 🛠 Workaround required | Event-driven pogo-pin USB detection |
 | Automatic touch mapping validation | ⚠️ Partial / needs validation | Input exists; mapping across layout changes needs testing |
 
 Status legend: ✅ Works upstream · 🛠 Workaround required · ⚠️ Partial / needs
@@ -50,7 +50,8 @@ never changes `/usr/share/omarchy`.
 ./install.sh --list
 ./install.sh --layout
 ./install.sh --brightness
-# or both
+./install.sh --keyboard-dock
+# or everything
 ./install.sh --all
 ```
 

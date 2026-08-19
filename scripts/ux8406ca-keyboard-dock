@@ -1,0 +1,105 @@
+#!/bin/bash
+
+set -u
+
+readonly keyboard_vendor="0b05"
+readonly keyboard_product="1bf2"
+readonly lower_display="eDP-2"
+readonly lower_mode="2880x1800@120,0x900,2"
+readonly runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
+readonly lock_file="$runtime_dir/ux8406ca-keyboard-dock.lock"
+readonly pid_file="$runtime_dir/ux8406ca-keyboard-dock.pid"
+
+log() {
+  printf 'ux8406ca-keyboard-dock: %s\n' "$*"
+}
+
+keyboard_is_docked() {
+  local device vendor product
+
+  for device in /sys/bus/usb/devices/*; do
+    [[ -r "$device/idVendor" && -r "$device/idProduct" ]] || continue
+    vendor="$(cat "$device/idVendor" 2>/dev/null)"
+    product="$(cat "$device/idProduct" 2>/dev/null)"
+    [[ "$vendor" == "$keyboard_vendor" && "$product" == "$keyboard_product" ]] && return 0
+  done
+
+  return 1
+}
+
+apply_state() {
+  local wanted
+
+  if keyboard_is_docked; then
+    wanted="docked"
+  else
+    wanted="detached"
+  fi
+
+  [[ "${current_state:-unknown}" == "$wanted" ]] && return 0
+
+  if [[ "$wanted" == "docked" ]]; then
+    log "keyboard docked; disabling $lower_display"
+    hyprctl eval "hl.monitor({ output = \"$lower_display\", disabled = true })" >/dev/null || return 1
+  else
+    log "keyboard detached; enabling $lower_display at $lower_mode"
+    hyprctl eval "hl.monitor({ output = \"$lower_display\", disabled = false, mode = \"2880x1800@120\", position = \"0x900\", scale = 2 })" >/dev/null || return 1
+  fi
+
+  current_state="$wanted"
+}
+
+case "${1:-}" in
+  --status)
+    if keyboard_is_docked; then
+      printf 'docked\n'
+    else
+      printf 'detached\n'
+    fi
+    exit 0
+    ;;
+  --once)
+    current_state="unknown"
+    apply_state
+    exit
+    ;;
+  "") ;;
+  *)
+    printf 'Usage: %s [--status|--once]\n' "${0##*/}" >&2
+    exit 2
+    ;;
+esac
+
+exec 9>"$lock_file"
+if ! flock -n 9; then
+  log "another monitor instance is already running"
+  exit 0
+fi
+
+printf '%s\n' "$$" >"$pid_file"
+trap 'rm -f -- "$pid_file"' EXIT
+trap 'exit 0' INT TERM
+
+current_state="unknown"
+apply_state
+
+# Read complete udev property records. Interface events are ignored: only a
+# physical USB-device add/remove causes a rescan after a short enumeration
+# delay. Rescanning also handles rapid detach/reattach transitions safely.
+action=""
+device_type=""
+
+while IFS= read -r line; do
+  case "$line" in
+    ACTION=*) action="${line#ACTION=}" ;;
+    DEVTYPE=*) device_type="${line#DEVTYPE=}" ;;
+    "")
+      if [[ "$device_type" == "usb_device" && "$action" =~ ^(add|remove)$ ]]; then
+        sleep 0.4
+        apply_state || log "failed to apply display state; waiting for the next USB event"
+      fi
+      action=""
+      device_type=""
+      ;;
+  esac
+done < <(stdbuf -oL udevadm monitor --udev --property --subsystem-match=usb 2>/dev/null)

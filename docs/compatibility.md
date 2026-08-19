@@ -25,10 +25,14 @@ regression is reproduced and documented with affected versions.
    the focused monitor. The [brightness wrapper](independent-brightness.md)
    provides a per-monitor candidate directory.
 
-## Open issues
+## Requires an event-driven workaround
 
-- Covering `eDP-2` with the detachable keyboard does not disable it or turn off
-  its backlight. See [keyboard dock investigation](keyboard-dock.md).
+- Covering `eDP-2` with the detachable keyboard does not trigger display policy
+  upstream. The [keyboard dock workaround](keyboard-dock.md) uses the observed
+  pogo-pin USB transition without polling or privileged services.
+
+## Open validation
+
 - Confirm touch/stylus coordinate mapping after dynamically disabling and
   restoring the lower display.
 
