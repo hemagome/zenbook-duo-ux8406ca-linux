@@ -1,0 +1,10 @@
+*.bak
+*.log
+*.tmp
+*~
+.DS_Store
+.idea/
+.vscode/
+diagnostics/
+local/
+secrets/

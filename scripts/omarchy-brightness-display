@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -u
+
+original="/usr/share/omarchy/bin/omarchy-brightness-display"
+original_args=("$@")
+monitor=""
+
+# Read the monitor argument without altering what is passed upstream.
+while (( $# > 0 )); do
+  case "$1" in
+    --no-osd)
+      shift
+      ;;
+    --monitor)
+      [[ $# -ge 2 ]] || exit 1
+      monitor="$2"
+      shift 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Keyboard shortcuts do not explicitly pass a monitor, so use the focused one.
+if [[ -z "$monitor" ]]; then
+  monitor="$(omarchy-hyprland-monitor-focused 2>/dev/null || true)"
+fi
+
+case "$monitor" in
+  eDP-1)
+    export OMARCHY_BACKLIGHT_PATH="$HOME/.local/share/omarchy-backlights/eDP-1"
+    ;;
+  eDP-2)
+    export OMARCHY_BACKLIGHT_PATH="$HOME/.local/share/omarchy-backlights/eDP-2"
+    ;;
+esac
+
+if [[ ! -x "$original" ]]; then
+  printf 'Packaged Omarchy helper is missing or not executable: %s\n' "$original" >&2
+  exit 1
+fi
+
+exec "$original" "${original_args[@]}"
