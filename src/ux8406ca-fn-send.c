@@ -109,6 +109,10 @@ int main(int argc, char **argv) {
                 puts("toggle");
             else if (active_command == 0xc7)
                 puts("backlight");
+            else if (active_command == 0x10)
+                puts("brightness-down");
+            else if (active_command == 0x20)
+                puts("brightness-up");
             else
                 continue;
             fflush(stdout);

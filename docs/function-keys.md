@@ -42,7 +42,9 @@ this workaround.
 The selected mode is reapplied after either transport connects. The helper
 listens for the native `Fn+Esc` report and toggles the saved mode on USB or
 Bluetooth. The same listener handles the proprietary F4 backlight event; see
-[Detachable-keyboard backlight](keyboard-backlight.md).
+[Detachable-keyboard backlight](keyboard-backlight.md). It also delegates the
+proprietary F5/F6 events to the tested
+[independent-display brightness](independent-brightness.md) workaround.
 
 How to revert:
 

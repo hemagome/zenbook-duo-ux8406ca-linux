@@ -56,3 +56,34 @@ omarchy-brightness-display --monitor eDP-2
 
 The last two commands only read the current percentages. Adjusting brightness
 is an explicit user action.
+
+## Detachable keyboard F5/F6
+
+The detachable keyboard does not expose its display-brightness shortcuts as
+normal evdev keys. It reports vendor commands `0x10` (down) and `0x20` (up) on
+the same HID channel used by Fn Lock and keyboard backlight.
+
+The installed keyboard listener delegates these commands to the local
+`omarchy-brightness-display` override:
+
+```text
+brightness-down → omarchy-brightness-display 5%-
+brightness-up   → omarchy-brightness-display +5%
+```
+
+This preserves Omarchy's adaptive low-brightness steps, OSD and invocation
+lock while retaining the tested per-monitor selection. The panel containing
+the focused Hyprland workspace is adjusted; the other panel is unchanged.
+
+The physical shortcut depends on Fn Lock:
+
+| Fn mode | Standard keys | Brightness shortcuts |
+|---|---|---|
+| `media` | `Fn+F5`, `Fn+F6` | `F5`, `F6` |
+| `function` | `F5`, `F6` | `Fn+F5`, `Fn+F6` |
+
+A short tap changes brightness by up to 5%. Holding F5/F6 repeats like normal
+brightness keys; identical reports within each press/release cycle are
+debounced, and Omarchy's invocation lock prevents overlapping adjustments.
+The listener snapshots the focused monitor for each accepted event and passes
+it explicitly with `--monitor`.

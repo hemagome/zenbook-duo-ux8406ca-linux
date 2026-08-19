@@ -28,6 +28,8 @@ regression is reproduced and documented with affected versions.
    are not exposed as standard Linux controls. The [Fn-mode](function-keys.md)
    and [keyboard-backlight](keyboard-backlight.md) helper handles both USB and
    Bluetooth without a global key remapper.
+4. Its F5/F6 display-brightness reports require the same listener, which
+   delegates to the [per-monitor Omarchy helper](independent-brightness.md).
 
 ## Requires an event-driven workaround
 

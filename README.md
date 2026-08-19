@@ -39,6 +39,7 @@ BlueZ or firmware updates.
 | Keyboard Fn layer | 🛠 Workaround required | Native HID mode initialization for USB `1bf2` and Bluetooth `1bf3` |
 | Fn Lock through `Fn+Esc` | 🛠 Workaround required | Native USB/Bluetooth vendor-report listener |
 | Detachable-keyboard backlight / F4 | 🛠 Workaround required | Four native levels over USB and Bluetooth |
+| Detachable-keyboard display brightness / F5–F6 | 🛠 Workaround required | Adjusts the focused internal panel through Omarchy |
 | Automatic touch mapping validation | ⚠️ Partial / needs validation | Input exists; mapping across layout changes needs testing |
 
 Status legend: ✅ Works upstream · 🛠 Workaround required · ⚠️ Partial / needs

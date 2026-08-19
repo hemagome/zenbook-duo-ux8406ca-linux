@@ -9,6 +9,7 @@ readonly config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/ux8406ca-linux"
 readonly config_file="$config_dir/fn-mode"
 readonly backlight_file="$config_dir/keyboard-backlight"
 readonly helper="${UX8406CA_FN_HELPER:-$HOME/.local/libexec/ux8406ca-fn-send}"
+readonly display_brightness_helper="${UX8406CA_DISPLAY_BRIGHTNESS_HELPER:-$HOME/.local/bin/omarchy-brightness-display}"
 readonly runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
 readonly lock_file="$runtime_dir/ux8406ca-fn-mode.lock"
 readonly pid_file="$runtime_dir/ux8406ca-fn-mode.pid"
@@ -117,6 +118,28 @@ cycle_backlight() {
   set_backlight "$level"
 }
 
+adjust_display_brightness() {
+  local direction="$1" step monitor
+  [[ -x "$display_brightness_helper" ]] || {
+    log "missing display brightness helper: $display_brightness_helper" >&2
+    return 1
+  }
+  case "$direction" in
+    down) step="5%-" ;;
+    up) step="+5%" ;;
+    *) return 2 ;;
+  esac
+  monitor="$(omarchy-hyprland-monitor-focused 2>/dev/null || true)"
+  if [[ -n "$monitor" ]]; then
+    "$display_brightness_helper" --monitor "$monitor" "$step"
+  else
+    "$display_brightness_helper" "$step"
+  fi || {
+    log "failed to adjust focused-display brightness $direction" >&2
+    return 1
+  }
+}
+
 apply_mode() {
   local mode
   mode="$(configured_mode)"
@@ -176,6 +199,8 @@ watch_events() {
             fi
             ;;
           backlight) cycle_backlight ;;
+          brightness-down) adjust_display_brightness down ;;
+          brightness-up) adjust_display_brightness up ;;
         esac
       done < <("$helper" listen)
       log "Fn listener stopped; waiting for keyboard connection"
