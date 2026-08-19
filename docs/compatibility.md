@@ -30,6 +30,8 @@ regression is reproduced and documented with affected versions.
    Bluetooth without a global key remapper.
 4. Its F5/F6 display-brightness reports require the same listener, which
    delegates to the [per-monitor Omarchy helper](independent-brightness.md).
+5. F9 and F11 use Omarchy-specific microphone/emoji actions while retaining
+   the portable USB/Bluetooth HID listener. See [function keys](function-keys.md).
 
 ## Requires an event-driven workaround
 

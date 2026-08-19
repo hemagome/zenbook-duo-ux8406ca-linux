@@ -1,8 +1,11 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <errno.h>
 #include <hidapi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define ASUS_VENDOR_ID 0x0b05
 #define UX8406CA_USB_KEYBOARD_ID 0x1bf2
@@ -24,7 +27,7 @@ static int is_control_collection(const struct hid_device_info *device) {
 
 static void usage(const char *program) {
     fprintf(stderr,
-            "Usage: %s media|function|listen|backlight <0|1|2|3>\n",
+            "Usage: %s media|function|listen|backlight <0|1|2|3>|mic-led <0|1>\n",
             program);
 }
 
@@ -57,6 +60,11 @@ int main(int argc, char **argv) {
         report[2] = 0xc5;
         report[3] = 0xc4;
         report[4] = (unsigned char)(argv[2][0] - '0');
+    } else if (strcmp(command, "mic-led") == 0 && argc == 3 &&
+               strlen(argv[2]) == 1 && (argv[2][0] == '0' || argv[2][0] == '1')) {
+        report[1] = 0xd0;
+        report[2] = 0x7c;
+        report[3] = (unsigned char)(argv[2][0] - '0');
     } else {
         usage(argv[0]);
         return 2;
@@ -93,6 +101,7 @@ int main(int argc, char **argv) {
     if (strcmp(command, "listen") == 0) {
         unsigned char input[64];
         unsigned char active_command = 0x00;
+        long long last_emit_ms[256] = {0};
         int length;
 
         while ((length = hid_read(keyboard, input, sizeof(input))) >= 0) {
@@ -105,6 +114,16 @@ int main(int argc, char **argv) {
             if (input[1] == active_command)
                 continue;
             active_command = input[1];
+            if (active_command != 0x10 && active_command != 0x20) {
+                struct timespec now;
+                long long now_ms;
+
+                clock_gettime(CLOCK_MONOTONIC, &now);
+                now_ms = (long long)now.tv_sec * 1000 + now.tv_nsec / 1000000;
+                if (now_ms - last_emit_ms[active_command] < 2000)
+                    continue;
+                last_emit_ms[active_command] = now_ms;
+            }
             if (active_command == 0x4e)
                 puts("toggle");
             else if (active_command == 0xc7)
@@ -113,6 +132,10 @@ int main(int argc, char **argv) {
                 puts("brightness-down");
             else if (active_command == 0x20)
                 puts("brightness-up");
+            else if (active_command == 0x7c)
+                puts("microphone-mute");
+            else if (active_command == 0x7e)
+                puts("emoji");
             else
                 continue;
             fflush(stdout);
@@ -132,6 +155,8 @@ int main(int argc, char **argv) {
 
     if (strcmp(command, "backlight") == 0)
         printf("ux8406ca-fn-send: applied keyboard backlight level %s\n", argv[2]);
+    else if (strcmp(command, "mic-led") == 0)
+        printf("ux8406ca-fn-send: applied microphone LED state %s\n", argv[2]);
     else
         printf("ux8406ca-fn-send: applied %s-default mode\n", command);
     result = 0;

@@ -46,6 +46,27 @@ Bluetooth. The same listener handles the proprietary F4 backlight event; see
 proprietary F5/F6 events to the tested
 [independent-display brightness](independent-brightness.md) workaround.
 
+## Omarchy actions: F9 and F11
+
+The remaining useful vendor reports are handled by the Omarchy backend:
+
+| Report | Special key | Action |
+|---|---|---|
+| `0x7c` | F9 | Run `omarchy-audio-input-mute`, then synchronize the keyboard mic-mute LED |
+| `0x7e` | F11 | Toggle the native `omarchy.emojis` overlay |
+
+The physical key depends on Fn mode: use F9/F11 directly in `media`, or
+Fn+F9/Fn+F11 in `function`. Standard F9/F11 remain available in the opposite
+layer. The microphone action controls PipeWire's default input and shows
+Omarchy OSD. Its LED state is restored after USB or Bluetooth reconnection.
+Toggle-style reports use a 2 second debounce window because the keyboard can
+emit multiple complete press/release cycles while a key is held. Display
+brightness retains normal hardware repetition.
+
+These two actions are desktop integrations, unlike the portable HID protocol.
+A GNOME, KDE or generic Hyprland installation should replace the invoked
+helpers rather than changing the device reports.
+
 How to revert:
 
 ```bash

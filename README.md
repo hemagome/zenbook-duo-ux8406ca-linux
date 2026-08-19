@@ -40,6 +40,8 @@ BlueZ or firmware updates.
 | Fn Lock through `Fn+Esc` | 🛠 Workaround required | Native USB/Bluetooth vendor-report listener |
 | Detachable-keyboard backlight / F4 | 🛠 Workaround required | Four native levels over USB and Bluetooth |
 | Detachable-keyboard display brightness / F5–F6 | 🛠 Workaround required | Adjusts the focused internal panel through Omarchy |
+| Detachable-keyboard microphone mute / F9 | 🛠 Workaround required | PipeWire mute, OSD and keyboard LED synchronization |
+| Detachable-keyboard emoji picker / F11 | 🛠 Workaround required | Opens the native Omarchy emoji overlay |
 | Automatic touch mapping validation | ⚠️ Partial / needs validation | Input exists; mapping across layout changes needs testing |
 
 Status legend: ✅ Works upstream · 🛠 Workaround required · ⚠️ Partial / needs

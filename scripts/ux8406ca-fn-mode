@@ -10,6 +10,8 @@ readonly config_file="$config_dir/fn-mode"
 readonly backlight_file="$config_dir/keyboard-backlight"
 readonly helper="${UX8406CA_FN_HELPER:-$HOME/.local/libexec/ux8406ca-fn-send}"
 readonly display_brightness_helper="${UX8406CA_DISPLAY_BRIGHTNESS_HELPER:-$HOME/.local/bin/omarchy-brightness-display}"
+readonly microphone_mute_helper="${UX8406CA_MICROPHONE_MUTE_HELPER:-/usr/share/omarchy/bin/omarchy-audio-input-mute}"
+readonly emoji_helper="${UX8406CA_EMOJI_HELPER:-/usr/share/omarchy/bin/omarchy-shell}"
 readonly runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
 readonly lock_file="$runtime_dir/ux8406ca-fn-mode.lock"
 readonly pid_file="$runtime_dir/ux8406ca-fn-mode.pid"
@@ -140,6 +142,49 @@ adjust_display_brightness() {
   }
 }
 
+microphone_is_muted() {
+  wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | grep -q MUTED
+}
+
+apply_microphone_led() {
+  local state="0"
+  keyboard_is_available || return 0
+  microphone_is_muted && state="1"
+  "$helper" mic-led "$state" || {
+    log "failed to synchronize the keyboard microphone LED" >&2
+    return 1
+  }
+}
+
+toggle_microphone_mute() {
+  [[ -x "$microphone_mute_helper" ]] || {
+    log "missing microphone mute helper: $microphone_mute_helper" >&2
+    return 1
+  }
+  "$microphone_mute_helper" || {
+    log "failed to toggle microphone mute" >&2
+    return 1
+  }
+  apply_microphone_led || return 1
+  if microphone_is_muted; then
+    log "microphone muted"
+  else
+    log "microphone unmuted"
+  fi
+}
+
+toggle_emoji_picker() {
+  [[ -x "$emoji_helper" ]] || {
+    log "missing emoji helper: $emoji_helper" >&2
+    return 1
+  }
+  "$emoji_helper" shell toggle omarchy.emojis || {
+    log "failed to toggle Omarchy emoji picker" >&2
+    return 1
+  }
+  log "toggled Omarchy emoji picker"
+}
+
 apply_mode() {
   local mode
   mode="$(configured_mode)"
@@ -189,6 +234,7 @@ watch_events() {
     if keyboard_is_available; then
       apply_mode || log "apply failed"
       apply_backlight || log "keyboard backlight restore failed"
+      apply_microphone_led || log "microphone LED restore failed"
       while IFS= read -r event; do
         case "$event" in
           toggle)
@@ -201,6 +247,8 @@ watch_events() {
           backlight) cycle_backlight ;;
           brightness-down) adjust_display_brightness down ;;
           brightness-up) adjust_display_brightness up ;;
+          microphone-mute) toggle_microphone_mute ;;
+          emoji) toggle_emoji_picker ;;
         esac
       done < <("$helper" listen)
       log "Fn listener stopped; waiting for keyboard connection"
