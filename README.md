@@ -36,9 +36,8 @@ BlueZ or firmware updates.
 | Independent brightness in Omarchy UI | 🛠 Workaround required | Per-monitor backlight wrapper |
 | Detachable Bluetooth keyboard | ✅ Works upstream | Pair and trust with BlueZ |
 | Disable lower panel when keyboard covers it | 🛠 Workaround required | Event-driven pogo-pin USB detection |
-| Docked keyboard Fn layer | 🛠 Workaround required | Native HID mode initialization, scoped to `0b05:1bf2` |
-| Fn Lock through `Fn+Esc` while docked | 🛠 Workaround required | Native interface-4 report listener |
-| Fn Lock through Bluetooth | ⚠️ Partial / needs validation | Momentary Fn works; lock event differs from USB |
+| Keyboard Fn layer | 🛠 Workaround required | Native HID mode initialization for USB `1bf2` and Bluetooth `1bf3` |
+| Fn Lock through `Fn+Esc` | 🛠 Workaround required | Native USB/Bluetooth vendor-report listener |
 | Automatic touch mapping validation | ⚠️ Partial / needs validation | Input exists; mapping across layout changes needs testing |
 
 Status legend: ✅ Works upstream · 🛠 Workaround required · ⚠️ Partial / needs

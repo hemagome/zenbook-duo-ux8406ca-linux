@@ -1,3 +1,7 @@
 # Permit the active local session to initialize only the UX8406CA keyboard's
 # vendor-control HID interface. Other ASUS and external keyboards do not match.
 ACTION=="add", SUBSYSTEM=="hidraw", ENV{ID_VENDOR_ID}=="0b05", ENV{ID_MODEL_ID}=="1bf2", ENV{ID_USB_INTERFACE_NUM}=="04", TAG+="uaccess"
+
+# BlueZ exposes the Bluetooth HID service through UHID. Match only the
+# UX8406CA keyboard's generic HID collection; its touchpad uses hid-multitouch.
+ACTION=="add", SUBSYSTEM=="hidraw", KERNELS=="0005:0B05:1BF3.*", DRIVERS=="hid-generic", TAG+="uaccess"

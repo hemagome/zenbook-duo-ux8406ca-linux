@@ -154,22 +154,25 @@ ensure_marked_autostart() {
 install_fn_udev_rule() {
   local source="$repo_dir/configs/udev/70-ux8406ca-fn-mode.rules"
   local destination="/etc/udev/rules.d/70-ux8406ca-fn-mode.rules"
+  local backup="$backup_dir/70-ux8406ca-fn-mode.rules"
+  local absent="$backup_dir/70-ux8406ca-fn-mode.rules.absent"
+  local checksum="$manifest_dir/70-ux8406ca-fn-mode.rules.sha256"
   local changed=0
 
   if [[ -f "$destination" ]] && cmp -s "$source" "$destination"; then
     printf 'Unchanged: %s\n' "$destination"
   else
-    if [[ -e "$destination" && ! -e "$backup_dir/70-ux8406ca-fn-mode.rules" ]]; then
-      printf 'Backup: %s -> %s\n' "$destination" "$backup_dir/70-ux8406ca-fn-mode.rules"
-      cat "$destination" >"$backup_dir/70-ux8406ca-fn-mode.rules"
+    if [[ -e "$destination" && ! -e "$backup" && ! -e "$absent" && ! -e "$checksum" ]]; then
+      printf 'Backup: %s -> %s\n' "$destination" "$backup"
+      cat "$destination" >"$backup"
     elif [[ ! -e "$destination" ]]; then
-      : >"$backup_dir/70-ux8406ca-fn-mode.rules.absent"
+      : >"$absent"
     fi
     printf 'Install fn-mode device permission rule: %s\n' "$destination"
     as_root install -Dm0644 "$source" "$destination"
     changed=1
   fi
-  sha256sum "$source" | awk '{print $1}' >"$manifest_dir/70-ux8406ca-fn-mode.rules.sha256"
+  sha256sum "$source" | awk '{print $1}' >"$checksum"
   if (( changed )); then
     as_root udevadm control --reload
     as_root udevadm trigger --subsystem-match=hidraw --action=add

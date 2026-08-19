@@ -4,8 +4,22 @@
 #include <string.h>
 
 #define ASUS_VENDOR_ID 0x0b05
-#define UX8406CA_KEYBOARD_ID 0x1bf2
+#define UX8406CA_USB_KEYBOARD_ID 0x1bf2
+#define UX8406CA_BLUETOOTH_KEYBOARD_ID 0x1bf3
 #define CONTROL_INTERFACE 4
+#define VENDOR_USAGE_PAGE 0xff31
+#define VENDOR_USAGE 0x0076
+
+static int is_control_collection(const struct hid_device_info *device) {
+    if (device->vendor_id != ASUS_VENDOR_ID)
+        return 0;
+    if (device->product_id == UX8406CA_USB_KEYBOARD_ID)
+        return device->interface_number == CONTROL_INTERFACE;
+    if (device->product_id == UX8406CA_BLUETOOTH_KEYBOARD_ID)
+        return device->usage_page == VENDOR_USAGE_PAGE &&
+               device->usage == VENDOR_USAGE;
+    return 0;
+}
 
 static void usage(const char *program) {
     fprintf(stderr, "Usage: %s media|function|listen\n", program);
@@ -42,14 +56,15 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    devices = hid_enumerate(ASUS_VENDOR_ID, UX8406CA_KEYBOARD_ID);
+    devices = hid_enumerate(ASUS_VENDOR_ID, 0x0000);
     for (item = devices; item != NULL; item = item->next) {
-        if (item->interface_number != CONTROL_INTERFACE)
+        if (!is_control_collection(item))
             continue;
         keyboard = hid_open_path(item->path);
         if (keyboard == NULL) {
             fprintf(stderr,
-                    "ux8406ca-fn-send: cannot open ASUS 0b05:1bf2 interface 4; "
+                    "ux8406ca-fn-send: cannot open the UX8406CA keyboard's "
+                    "vendor HID collection; "
                     "check the udev rule and reconnect the keyboard\n");
             result = 1;
             goto out;
@@ -59,7 +74,7 @@ int main(int argc, char **argv) {
 
     if (keyboard == NULL) {
         fprintf(stderr,
-                "ux8406ca-fn-send: docked ASUS 0b05:1bf2 interface 4 not found\n");
+                "ux8406ca-fn-send: UX8406CA keyboard control collection not found\n");
         result = 3;
         goto out;
     }

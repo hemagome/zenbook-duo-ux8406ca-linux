@@ -102,4 +102,4 @@ while IFS= read -r line; do
       device_type=""
       ;;
   esac
-done < <(stdbuf -oL udevadm monitor --udev --property --subsystem-match=usb 2>/dev/null)
+done < <(stdbuf -oL udevadm monitor --udev --property --subsystem-match=usb 9>&- 2>/dev/null)

@@ -4,6 +4,7 @@ set -u
 
 readonly keyboard_vendor="0b05"
 readonly keyboard_product="1bf2"
+readonly bluetooth_product="1BF3"
 readonly config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/ux8406ca-linux"
 readonly config_file="$config_dir/fn-mode"
 readonly helper="${UX8406CA_FN_HELPER:-$HOME/.local/libexec/ux8406ca-fn-send}"
@@ -24,6 +25,18 @@ keyboard_is_docked() {
        "$(<"$device/idProduct")" == "$keyboard_product" ]] && return 0
   done
   return 1
+}
+
+keyboard_is_bluetooth() {
+  local device
+  for device in /sys/bus/hid/devices/0005:0B05:"$bluetooth_product".*; do
+    [[ -e "$device" ]] && return 0
+  done
+  return 1
+}
+
+keyboard_is_available() {
+  keyboard_is_docked || keyboard_is_bluetooth
 }
 
 configured_mode() {
@@ -53,8 +66,8 @@ save_mode() {
 apply_mode() {
   local mode
   mode="$(configured_mode)"
-  if ! keyboard_is_docked; then
-    log "keyboard is detached; saved $mode-default mode will apply when docked"
+  if ! keyboard_is_available; then
+    log "keyboard is disconnected; saved $mode-default mode will apply when connected"
     return 0
   fi
   [[ -x "$helper" ]] || { log "missing helper: $helper" >&2; return 1; }
@@ -67,22 +80,20 @@ set_mode() {
   apply_mode
 }
 
-wait_for_usb_add() {
-  local action="" device_type=""
+wait_for_device_add() {
+  local action=""
 
   while IFS= read -r line; do
     case "$line" in
       ACTION=*) action="${line#ACTION=}" ;;
-      DEVTYPE=*) device_type="${line#DEVTYPE=}" ;;
       "")
-        if [[ "$device_type" == "usb_device" && "$action" == "add" ]]; then
+        if [[ "$action" == "add" ]]; then
           return 0
         fi
         action=""
-        device_type=""
         ;;
     esac
-  done < <(stdbuf -oL udevadm monitor --udev --property --subsystem-match=usb 2>/dev/null)
+  done < <(stdbuf -oL udevadm monitor --udev --property 9>&- 2>/dev/null)
 }
 
 watch_events() {
@@ -98,7 +109,7 @@ watch_events() {
   trap 'exit 0' INT TERM
 
   while true; do
-    if keyboard_is_docked; then
+    if keyboard_is_available; then
       apply_mode || log "apply failed"
       while IFS= read -r event; do
         if [[ "$event" == "toggle" ]]; then
@@ -109,9 +120,9 @@ watch_events() {
           fi
         fi
       done < <("$helper" listen)
-      log "Fn listener stopped; waiting for USB attachment"
+      log "Fn listener stopped; waiting for keyboard connection"
     fi
-    wait_for_usb_add
+    wait_for_device_add
     sleep 0.4
   done
 }
@@ -124,7 +135,13 @@ case "${1:-}" in
   apply) apply_mode ;;
   status)
     printf 'configured=%s\n' "$(configured_mode)"
-    if keyboard_is_docked; then printf 'transport=usb-docked\n'; else printf 'transport=detached-or-bluetooth\n'; fi
+    if keyboard_is_docked; then
+      printf 'transport=usb-docked\n'
+    elif keyboard_is_bluetooth; then
+      printf 'transport=bluetooth\n'
+    else
+      printf 'transport=disconnected\n'
+    fi
     ;;
   --watch) watch_events ;;
   *)
