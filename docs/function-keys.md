@@ -36,9 +36,11 @@ ux8406ca-fn-mode status
 
 The native helper matches only USB `0b05:1bf2` interface 4 or Bluetooth
 `0b05:1bf3` vendor collection `FF31:0076`. The udev rule grants the active
-desktop session access only to those control collections; the monitor and
-helper run unprivileged. A different USB or Bluetooth keyboard cannot match
-this workaround.
+desktop session access only to those control collections and gives them the
+`input` group with mode `0660`, so startup also works when the keyboard is
+enumerated before the graphical session. The monitor and helper run
+unprivileged. A different USB or Bluetooth keyboard cannot match this
+workaround.
 
 The selected mode is reapplied after either transport connects. The helper
 listens for the native `Fn+Esc` report and toggles the saved mode on USB or
