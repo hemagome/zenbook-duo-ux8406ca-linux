@@ -36,6 +36,9 @@ BlueZ or firmware updates.
 | Independent brightness in Omarchy UI | 🛠 Workaround required | Per-monitor backlight wrapper |
 | Detachable Bluetooth keyboard | ✅ Works upstream | Pair and trust with BlueZ |
 | Disable lower panel when keyboard covers it | 🛠 Workaround required | Event-driven pogo-pin USB detection |
+| Docked keyboard Fn layer | 🛠 Workaround required | Native HID mode initialization, scoped to `0b05:1bf2` |
+| Fn Lock through `Fn+Esc` while docked | 🛠 Workaround required | Native interface-4 report listener |
+| Fn Lock through Bluetooth | ⚠️ Partial / needs validation | Momentary Fn works; lock event differs from USB |
 | Automatic touch mapping validation | ⚠️ Partial / needs validation | Input exists; mapping across layout changes needs testing |
 
 Status legend: ✅ Works upstream · 🛠 Workaround required · ⚠️ Partial / needs
@@ -43,14 +46,15 @@ validation · ❌ Not working.
 
 ## Quick start
 
-Inspect the scripts before running them. Installation does not require root and
-never changes `/usr/share/omarchy`.
+Inspect the scripts before running them. Only `--fn-mode` requires `sudo`, for
+one narrowly scoped udev permission rule. Nothing changes `/usr/share/omarchy`.
 
 ```bash
 ./install.sh --list
 ./install.sh --layout
 ./install.sh --brightness
 ./install.sh --keyboard-dock
+./install.sh --fn-mode
 # or everything
 ./install.sh --all
 ```
@@ -79,6 +83,7 @@ hyprctl configerrors
 - [Independent brightness](docs/independent-brightness.md)
 - [Bluetooth keyboard pairing](docs/bluetooth-keyboard.md)
 - [Keyboard dock investigation](docs/keyboard-dock.md)
+- [Function row and Fn mode](docs/function-keys.md)
 - [Troubleshooting and rollback](docs/troubleshooting.md)
 - [Installer design](install/README.md)
 

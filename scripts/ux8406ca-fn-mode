@@ -1,0 +1,134 @@
+#!/bin/bash
+
+set -u
+
+readonly keyboard_vendor="0b05"
+readonly keyboard_product="1bf2"
+readonly config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/ux8406ca-linux"
+readonly config_file="$config_dir/fn-mode"
+readonly helper="${UX8406CA_FN_HELPER:-$HOME/.local/libexec/ux8406ca-fn-send}"
+readonly runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
+readonly lock_file="$runtime_dir/ux8406ca-fn-mode.lock"
+readonly pid_file="$runtime_dir/ux8406ca-fn-mode.pid"
+
+log() {
+  printf 'ux8406ca-fn-mode: %s\n' "$*"
+}
+
+keyboard_is_docked() {
+  local device
+
+  for device in /sys/bus/usb/devices/*; do
+    [[ -r "$device/idVendor" && -r "$device/idProduct" ]] || continue
+    [[ "$(<"$device/idVendor")" == "$keyboard_vendor" &&
+       "$(<"$device/idProduct")" == "$keyboard_product" ]] && return 0
+  done
+  return 1
+}
+
+configured_mode() {
+  local mode="media"
+
+  if [[ -r "$config_file" ]]; then
+    read -r mode <"$config_file"
+  fi
+  case "$mode" in
+    media|function) printf '%s\n' "$mode" ;;
+    *)
+      log "invalid mode in $config_file; using media" >&2
+      printf 'media\n'
+      ;;
+  esac
+}
+
+save_mode() {
+  local mode="$1" temp
+  mkdir -p "$config_dir"
+  temp="$(mktemp "$config_dir/fn-mode.XXXXXX")"
+  printf '%s\n' "$mode" >"$temp"
+  chmod 0600 "$temp"
+  mv -f -- "$temp" "$config_file"
+}
+
+apply_mode() {
+  local mode
+  mode="$(configured_mode)"
+  if ! keyboard_is_docked; then
+    log "keyboard is detached; saved $mode-default mode will apply when docked"
+    return 0
+  fi
+  [[ -x "$helper" ]] || { log "missing helper: $helper" >&2; return 1; }
+  "$helper" "$mode"
+}
+
+set_mode() {
+  local mode="$1"
+  save_mode "$mode"
+  apply_mode
+}
+
+wait_for_usb_add() {
+  local action="" device_type=""
+
+  while IFS= read -r line; do
+    case "$line" in
+      ACTION=*) action="${line#ACTION=}" ;;
+      DEVTYPE=*) device_type="${line#DEVTYPE=}" ;;
+      "")
+        if [[ "$device_type" == "usb_device" && "$action" == "add" ]]; then
+          return 0
+        fi
+        action=""
+        device_type=""
+        ;;
+    esac
+  done < <(stdbuf -oL udevadm monitor --udev --property --subsystem-match=usb 2>/dev/null)
+}
+
+watch_events() {
+  local event
+
+  exec 9>"$lock_file"
+  if ! flock -n 9; then
+    log "another monitor instance is already running"
+    return 0
+  fi
+  printf '%s\n' "$$" >"$pid_file"
+  trap 'rm -f -- "$pid_file"' EXIT
+  trap 'exit 0' INT TERM
+
+  while true; do
+    if keyboard_is_docked; then
+      apply_mode || log "apply failed"
+      while IFS= read -r event; do
+        if [[ "$event" == "toggle" ]]; then
+          if [[ "$(configured_mode)" == "media" ]]; then
+            set_mode function
+          else
+            set_mode media
+          fi
+        fi
+      done < <("$helper" listen)
+      log "Fn listener stopped; waiting for USB attachment"
+    fi
+    wait_for_usb_add
+    sleep 0.4
+  done
+}
+
+case "${1:-}" in
+  media|function) set_mode "$1" ;;
+  toggle)
+    if [[ "$(configured_mode)" == "media" ]]; then set_mode function; else set_mode media; fi
+    ;;
+  apply) apply_mode ;;
+  status)
+    printf 'configured=%s\n' "$(configured_mode)"
+    if keyboard_is_docked; then printf 'transport=usb-docked\n'; else printf 'transport=detached-or-bluetooth\n'; fi
+    ;;
+  --watch) watch_events ;;
+  *)
+    printf 'Usage: %s media|function|toggle|apply|status|--watch\n' "${0##*/}" >&2
+    exit 2
+    ;;
+esac

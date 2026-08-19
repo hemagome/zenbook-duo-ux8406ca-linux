@@ -1,7 +1,7 @@
 # Installer design
 
 `install.sh` and `uninstall.sh` are intentionally small Bash programs. They do
-not require root or install packages.
+not install packages. Only `fn-mode` uses `sudo`, to manage its udev rule.
 
 Available components:
 
@@ -10,6 +10,7 @@ Available components:
 | `layout` | `~/.config/hypr/monitors.lua` |
 | `brightness` | `~/.local/bin/omarchy-brightness-display`, two symlink directories, one marked block in `~/.config/hypr/hyprland.lua` |
 | `keyboard-dock` | `~/.local/bin/ux8406ca-keyboard-dock`, one marked block in `~/.config/hypr/autostart.lua` |
+| `fn-mode` | User CLI and compiled HID helper, one marked autostart block, and `/etc/udev/rules.d/70-ux8406ca-fn-mode.rules` |
 
 ## Guarantees
 

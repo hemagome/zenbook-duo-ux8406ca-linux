@@ -1,0 +1,3 @@
+# Permit the active local session to initialize only the UX8406CA keyboard's
+# vendor-control HID interface. Other ASUS and external keyboards do not match.
+ACTION=="add", SUBSYSTEM=="hidraw", ENV{ID_VENDOR_ID}=="0b05", ENV{ID_MODEL_ID}=="1bf2", ENV{ID_USB_INTERFACE_NUM}=="04", TAG+="uaccess"

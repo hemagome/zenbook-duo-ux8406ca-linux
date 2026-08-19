@@ -9,15 +9,22 @@ manifest_dir="$state_dir/manifest"
 layout=0
 brightness=0
 keyboard_dock=0
+fn_mode=0
+privilege_helper="${UX8406CA_PRIVILEGE_HELPER:-sudo}"
+
+as_root() {
+  "$privilege_helper" "$@"
+}
 
 usage() {
   cat <<'EOF'
-Usage: ./install.sh [--layout] [--brightness] [--keyboard-dock] [--all] [--list]
+Usage: ./install.sh [--layout] [--brightness] [--keyboard-dock] [--fn-mode] [--all] [--list]
 
   --layout      Install the tested vertical monitor layout
   --brightness  Install independent Omarchy brightness selection
   --keyboard-dock
                 Toggle eDP-2 when the pogo-pin keyboard is docked or removed
+  --fn-mode     Initialize the docked keyboard's native Fn layer
   --all         Install all workarounds
   --list        Show available workarounds
 EOF
@@ -28,7 +35,8 @@ while (( $# > 0 )); do
     --layout) layout=1 ;;
     --brightness) brightness=1 ;;
     --keyboard-dock) keyboard_dock=1 ;;
-    --all) layout=1; brightness=1; keyboard_dock=1 ;;
+    --fn-mode) fn_mode=1 ;;
+    --all) layout=1; brightness=1; keyboard_dock=1; fn_mode=1 ;;
     --list) usage; exit 0 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'Unknown option: %s\n' "$1" >&2; usage >&2; exit 2 ;;
@@ -36,7 +44,7 @@ while (( $# > 0 )); do
   shift
 done
 
-if (( ! layout && ! brightness && ! keyboard_dock )); then
+if (( ! layout && ! brightness && ! keyboard_dock && ! fn_mode )); then
   usage
   exit 2
 fi
@@ -123,6 +131,51 @@ ensure_keyboard_dock_autostart() {
     "$snippet" >>"$destination"
 }
 
+ensure_marked_autostart() {
+  local component="$1" marker="$2" snippet="$3"
+  local destination="$HOME/.config/hypr/autostart.lua"
+  local backup="$backup_dir/autostart.lua"
+
+  [[ -f "$destination" ]] || { printf 'Missing Hyprland autostart config: %s\n' "$destination" >&2; exit 1; }
+  if rg -q "^-- BEGIN ux8406ca-linux ${marker}$" "$destination"; then
+    printf 'Unchanged: %s autostart already exists in %s\n' "$component" "$destination"
+    return
+  fi
+  if [[ ! -e "$backup" ]]; then
+    printf 'Backup: %s -> %s\n' "$destination" "$backup"
+    cp -a -- "$destination" "$backup"
+  fi
+  printf 'Append %s autostart: %s\n' "$component" "$destination"
+  printf '\n' >>"$destination"
+  sed -n "/^-- BEGIN ux8406ca-linux ${marker}$/,/^-- END ux8406ca-linux ${marker}$/p" \
+    "$snippet" >>"$destination"
+}
+
+install_fn_udev_rule() {
+  local source="$repo_dir/configs/udev/70-ux8406ca-fn-mode.rules"
+  local destination="/etc/udev/rules.d/70-ux8406ca-fn-mode.rules"
+  local changed=0
+
+  if [[ -f "$destination" ]] && cmp -s "$source" "$destination"; then
+    printf 'Unchanged: %s\n' "$destination"
+  else
+    if [[ -e "$destination" && ! -e "$backup_dir/70-ux8406ca-fn-mode.rules" ]]; then
+      printf 'Backup: %s -> %s\n' "$destination" "$backup_dir/70-ux8406ca-fn-mode.rules"
+      cat "$destination" >"$backup_dir/70-ux8406ca-fn-mode.rules"
+    elif [[ ! -e "$destination" ]]; then
+      : >"$backup_dir/70-ux8406ca-fn-mode.rules.absent"
+    fi
+    printf 'Install fn-mode device permission rule: %s\n' "$destination"
+    as_root install -Dm0644 "$source" "$destination"
+    changed=1
+  fi
+  sha256sum "$source" | awk '{print $1}' >"$manifest_dir/70-ux8406ca-fn-mode.rules.sha256"
+  if (( changed )); then
+    as_root udevadm control --reload
+    as_root udevadm trigger --subsystem-match=hidraw --action=add
+  fi
+}
+
 if (( layout )); then
   install_managed_file layout "$repo_dir/configs/omarchy/monitors.lua" \
     "$HOME/.config/hypr/monitors.lua" monitors.lua
@@ -148,6 +201,25 @@ if (( keyboard_dock )); then
     "$HOME/.local/bin/ux8406ca-keyboard-dock" ux8406ca-keyboard-dock
   chmod 0755 "$HOME/.local/bin/ux8406ca-keyboard-dock"
   ensure_keyboard_dock_autostart
+fi
+
+if (( fn_mode )); then
+  command -v gcc >/dev/null || { printf 'Missing build dependency: gcc\n' >&2; exit 1; }
+  pkg-config --exists hidapi-hidraw || { printf 'Missing build dependency: hidapi\n' >&2; exit 1; }
+  mkdir -p "$state_dir/build"
+  printf 'Build fn-mode HID helper\n'
+  # shellcheck disable=SC2046
+  gcc -std=c11 -O2 -Wall -Wextra -Werror $(pkg-config --cflags hidapi-hidraw) \
+    "$repo_dir/src/ux8406ca-fn-send.c" $(pkg-config --libs hidapi-hidraw) \
+    -o "$state_dir/build/ux8406ca-fn-send"
+  install_managed_file fn-mode "$state_dir/build/ux8406ca-fn-send" \
+    "$HOME/.local/libexec/ux8406ca-fn-send" ux8406ca-fn-send
+  install_managed_file fn-mode "$repo_dir/scripts/ux8406ca-fn-mode" \
+    "$HOME/.local/bin/ux8406ca-fn-mode" ux8406ca-fn-mode
+  chmod 0755 "$HOME/.local/libexec/ux8406ca-fn-send" "$HOME/.local/bin/ux8406ca-fn-mode"
+  install_fn_udev_rule
+  ensure_marked_autostart fn-mode fn-mode "$repo_dir/configs/omarchy/fn-mode-autostart.lua"
+  "$HOME/.local/bin/ux8406ca-fn-mode" apply
 fi
 
 printf 'Done. Apply and validate with: hyprctl reload && hyprctl configerrors\n'

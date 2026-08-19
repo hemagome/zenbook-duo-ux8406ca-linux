@@ -8,3 +8,4 @@
 diagnostics/
 local/
 secrets/
+.build/
