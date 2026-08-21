@@ -90,6 +90,7 @@ hyprctl configerrors
 - [Function row and Fn mode](docs/function-keys.md)
 - [Detachable-keyboard backlight](docs/keyboard-backlight.md)
 - [Troubleshooting and rollback](docs/troubleshooting.md)
+- [Intel VMD NVMe boot stalls](docs/login-startup-timing.md)
 - [Installer design](install/README.md)
 
 ## Project philosophy
