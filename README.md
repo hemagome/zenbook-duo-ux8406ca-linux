@@ -30,7 +30,8 @@ BlueZ or firmware updates.
 | Intel Arc graphics / Wayland | ✅ Works upstream | i915 on the tested kernel |
 | Both internal panels at 120 Hz | ✅ Works upstream | Both modes are exposed normally |
 | Touch and stylus on both panels | ✅ Works upstream | Two touch and two stylus devices detected |
-| Wi-Fi, Bluetooth, audio, microphone, webcam | ✅ Works upstream | No repository workaround required |
+| Wi-Fi, Bluetooth, microphone, webcam | ✅ Works upstream | No repository workaround required |
+| Internal speakers | ⚠️ Partial / needs validation | Normally work, but intermittent silence has been reported; see [speaker audio investigation](docs/intermittent-speaker-audio.md) |
 | LUKS, Btrfs, Limine, Windows dual boot | ✅ Works upstream | Installation-specific; keep backups |
 | Vertical dual-screen layout | 🛠 Workaround required | Explicit Hyprland positions and scale |
 | Independent brightness in Omarchy UI | 🛠 Workaround required | Per-monitor backlight wrapper |

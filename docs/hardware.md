@@ -12,7 +12,7 @@ omitted.
 | Touch/stylus | ELAN devices for each panel |
 | Keyboard | `ASUS Zenbook Duo Keyboard`, Bluetooth HID |
 | Wi-Fi | Intel Arrow Lake CNVi, `iwlwifi` |
-| Audio | Intel HD Audio speaker and digital microphone through PipeWire |
+| Audio | Intel HD Audio with Realtek ALC294 and dual Cirrus CS35L41 speaker amplifiers through PipeWire |
 | Camera | USB2.0 FHD UVC webcam |
 | SSD | WD PC SN5000S 1 TB class |
 | Linux storage | LUKS container with Btrfs |

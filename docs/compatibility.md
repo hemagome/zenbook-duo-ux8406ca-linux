@@ -12,13 +12,14 @@ Hyprland/Omarchy integrations shipped here, see the
 - Both OLED panels, including 2880×1800 at 120 Hz
 - Intel Arc integrated graphics, Wayland and Hyprland
 - Wi-Fi and Bluetooth
-- Speakers, microphone and webcam
+- Microphone and webcam
 - Touch and stylus input on both panels
 - Two real, independently controllable backlights
 - LUKS, Btrfs, UEFI/Limine and Windows 11 dual boot
 - Bluetooth keyboard pairing and normal keyboard/touchpad input
 
-These are treated as upstream-working. Do not add a patch unless a concrete
+These working paths are treated as upstream-working. The internal speaker
+report is tracked separately below. Do not add a patch unless a concrete
 regression is reproduced and documented with affected versions.
 
 ## Requires a local workaround
@@ -36,6 +37,13 @@ regression is reproduced and documented with affected versions.
    delegates to the [per-monitor Omarchy helper](independent-brightness.md).
 5. F9 and F11 use Omarchy-specific microphone/emoji actions while retaining
    the portable USB/Bluetooth HID listener. See [function keys](function-keys.md).
+
+## Intermittent speaker silence under investigation
+
+The internal speakers have been reported to stop producing sound randomly even
+though they work in other boots. No trigger, root cause, or confirmed fix is
+known yet. See the [speaker audio report](intermittent-speaker-audio.md) for
+the current evidence and the diagnostics to capture during the next failure.
 
 ## Requires an event-driven workaround
 
