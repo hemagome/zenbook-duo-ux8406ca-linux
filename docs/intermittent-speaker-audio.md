@@ -92,6 +92,38 @@ The observed `speaker_outs=0` together with one `line_out` classified as
 `speaker` is recorded for comparison, but is not yet established as the cause:
 the current session's speakers were reported to be working.
 
+### Workaround test: `firmware_autostart=0` — 2026-09-02
+
+The workaround documented for the ASUS Zenbook UX3405MA was tested on this
+UX8406CA by installing:
+
+```text
+options snd_hda_scodec_cs35l41 firmware_autostart=0
+```
+
+After reboot, the module parameter was active (`N`, the sysfs representation
+of `0`) and both amplifiers bound with `FW EN: 0`. The kernel nevertheless
+continued to report `PUP_DONE_MASK: -110` for both amplifiers at approximately
+15:36:59, 15:37:00 and 15:37:20. The workaround therefore did not prevent the
+failure on this model.
+
+The temporary configuration was disabled and the system was rebooted again.
+The parameter is now back at `Y` (`1`), both amplifiers load the speaker
+protection firmware with `FW EN: 1`, and the timeout still appears at
+approximately 15:39:50. No speaker-protection override remains active.
+
+The same boot records an additional clue for this machine:
+
+```text
+CS35L41 Bound - SSID: 10431C43, BST: 1, VSPK: 1, CH: L, FW EN: 1, SPKID: 0
+CS35L41 Bound - SSID: 10431C43, BST: 1, VSPK: 0, CH: R, FW EN: 1, SPKID: 0
+```
+
+The right amplifier has `VSPK: 0` while the left has `VSPK: 1`. This is a
+useful ACPI/GPIO lead, not a confirmed root cause; the UX8406CA's `10431C43`
+configuration is different from the `10431A63` configuration in the
+documented UX3405MA workaround.
+
 ## Reproduction data to capture
 
 When the speakers are silent, record whether the failure followed any of these
