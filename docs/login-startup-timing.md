@@ -13,8 +13,8 @@ Tested configuration:
 | Laptop | ASUS Zenbook Duo UX8406CA, BIOS 313 |
 | VMD controller | Intel `8086:7d0b` |
 | SSD | WD PC SN5000S 1 TB, firmware `34230100` |
-| Linux | `7.1.8-arch1-3` |
-| Omarchy | `4.0.0-1` |
+| Linux | `7.1.9-arch1-2` |
+| Omarchy | `4.0.2-1` |
 
 ## Problem
 

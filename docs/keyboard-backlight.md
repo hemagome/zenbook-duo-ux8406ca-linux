@@ -3,8 +3,8 @@
 Tested on:
 
 ```text
-Kernel: 7.1.8-arch1-3
-Omarchy: 4.0.0-1
+Kernel: 7.1.9-arch1-2
+Omarchy: 4.0.2-1
 Hyprland: 0.56.2
 USB HID: 0b05:1bf2, interface 4
 Bluetooth HID: 0b05:1bf3, vendor collection FF31:0076

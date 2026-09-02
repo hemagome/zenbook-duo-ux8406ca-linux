@@ -21,8 +21,8 @@ omitted.
 ## Relevant software
 
 ```text
-Linux       7.1.8-arch1-3
-Omarchy     4.0.0-1
+Linux       7.1.9-arch1-2
+Omarchy     4.0.2-1
 Hyprland    0.56.2
 BlueZ       5.87-2
 brightnessctl 0.5.1

@@ -4,8 +4,8 @@
 
 ```text
 Tested on: ASUS Zenbook Duo UX8406CA
-Kernel: 7.1.8-arch1-3
-Omarchy: 4.0.0-1
+Kernel: 7.1.9-arch1-2
+Omarchy: 4.0.2-1
 Hyprland: 0.56.2
 Applicability: Hyprland policy; USB dock detection is Linux universal.
 

@@ -12,11 +12,11 @@ reproduced on the UX8406CA with a current kernel.
 | Component | Tested version / hardware |
 |---|---|
 | Model | ASUS Zenbook Duo UX8406CA (`UX8406CA_UX8406CA`) |
-| Linux | `7.1.8-arch1-3` |
-| Omarchy | `4.0.0-1` |
+| Linux | `7.1.9-arch1-2` |
+| Omarchy | `4.0.2-1` |
 | Hyprland | `0.56.2` |
 | BlueZ | `5.87-2` |
-| Boot | Limine `12.5.2`, UEFI, Secure Boot off, TPM 2 active |
+| Boot | Limine `12.6.0-1`, UEFI, Secure Boot off, TPM 2 active |
 | Storage | WD PC SN5000S 1 TB; Windows 11 + LUKS/Btrfs dual boot |
 | Displays | 2× Samsung 2880×1800 at 120 Hz (`eDP-1`, `eDP-2`) |
 

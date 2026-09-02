@@ -3,8 +3,8 @@
 Tested on:
 
 ```text
-Kernel: 7.1.8-arch1-3
-Omarchy: 4.0.0-1
+Kernel: 7.1.9-arch1-2
+Omarchy: 4.0.2-1
 Hyprland: 0.56.2
 Keyboard USB ID: 0b05:1bf2
 Keyboard Bluetooth HID ID: 0b05:1bf3
