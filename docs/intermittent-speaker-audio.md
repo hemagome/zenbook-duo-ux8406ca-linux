@@ -18,11 +18,11 @@ failure has not yet been recorded.
 
 ```text
 Model: ASUS Zenbook Duo UX8406CA_UX8406CA
-Kernel: 7.1.9-arch1-2
-Omarchy: 4.0.2-1
-Hyprland: 0.56.2
-PipeWire: 1.6.8-1
-WirePlumber: 0.5.15-1
+Kernel: 7.2.3-arch1-3
+Omarchy: 4.0.3-1
+Hyprland: 0.56.2-2
+PipeWire: 1:1.6.8-1
+WirePlumber: 0.5.17-1
 sof-firmware: 2025.12.2-1
 alsa-ucm-conf: 1.2.16.1-1
 Audio controller: Intel 00:1f.3, PCI ID 8086:7728
@@ -124,6 +124,16 @@ useful ACPI/GPIO lead, not a confirmed root cause; the UX8406CA's `10431C43`
 configuration is different from the `10431A63` configuration in the
 documented UX3405MA workaround.
 
+### Post-update validation — 2026-09-08
+
+The first boot after updating to Linux `7.2.3-arch1-3` and Omarchy `4.0.3-1`
+completed with both CS35L41 amplifiers loading their `10431C43` firmware and
+binding with `FW EN: 1`. No `PUP_DONE_MASK: -110` or `PDN_DONE_MASK` timeout
+appeared in the boot journal. The right amplifier still reported `VSPK: 0`,
+so this is a clean-boot observation rather than confirmation that the
+intermittent failure is fixed. Suspend/resume and other power transitions
+still need to be tested before changing the investigation status.
+
 ## Reproduction data to capture
 
 When the speakers are silent, record whether the failure followed any of these
@@ -175,6 +185,7 @@ recovery are repeated.
 - [Linux for ROG Cirrus amplifier guide](https://asus-linux.org/guides/cirrus-amps/): documents general CS35L41 initialization and ACPI issues on related ASUS hardware, but does not document this UX8406CA intermittent failure.
 
 No model-specific public documentation or confirmed fix for this intermittent
-UX8406CA speaker failure was found. The 2026-09-02 capture is the first
-confirmed reproduction in this project and should be used as the baseline for
-future recovery tests and any upstream report.
+UX8406CA speaker failure was found. The 2026-09-02 capture remains the
+confirmed reproduction baseline; the clean 2026-09-08 boot does not supersede
+it. Use both records when testing recovery after suspend/resume or other power
+transitions.

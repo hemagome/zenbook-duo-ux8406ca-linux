@@ -4,7 +4,8 @@
 
 Mitigated on the tested ASUS Zenbook Duo UX8406CA by disabling Intel VMD in
 UEFI. Three consecutive VMD-off Omarchy boots completed without an NVMe
-timeout. Last validated: 2026-08-21.
+timeout. A fresh boot on 2026-09-08 also completed without an NVMe timeout;
+VMD remains disabled.
 
 Tested configuration:
 
@@ -13,8 +14,8 @@ Tested configuration:
 | Laptop | ASUS Zenbook Duo UX8406CA, BIOS 313 |
 | VMD controller | Intel `8086:7d0b` |
 | SSD | WD PC SN5000S 1 TB, firmware `34230100` |
-| Linux | `7.1.9-arch1-2` |
-| Omarchy | `4.0.2-1` |
+| Linux | `7.2.3-arch1-3` |
+| Omarchy | `4.0.3-1` |
 
 ## Problem
 
@@ -83,8 +84,9 @@ pull requests for a change like this. A patch titled **“PCI: vmd: Delay
 interrupt handling on MTL VMD controller”** was submitted on 2024-09-02 for
 the exact `8086:7d0b` controller and MTL016 symptom. Reviewers rejected a fixed
 delay as an ordering guarantee and requested a proper register-read solution.
-No revised patch or merged fix was found as of 2026-08-21, and current upstream
-`vmd.c` does not contain the proposed MTL016 quirk.
+No revised patch or merged fix was found as of 2026-09-08, and current upstream
+`vmd.c` still does not contain the proposed MTL016/`8086:7d0b` quirk. The
+updated local kernel therefore does not justify re-enabling VMD.
 
 Tracking links:
 
