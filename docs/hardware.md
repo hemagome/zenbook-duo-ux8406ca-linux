@@ -1,7 +1,7 @@
 # Hardware and inspected system
 
 The following was observed directly on an ASUS Zenbook Duo UX8406CA on
-2026-08-18. Identifiers that are unique to one machine are intentionally
+2026-09-08. Identifiers that are unique to one machine are intentionally
 omitted.
 
 | Area | Observed state |
@@ -21,14 +21,19 @@ omitted.
 ## Relevant software
 
 ```text
-Linux       7.1.9-arch1-2
-Omarchy     4.0.2-1
-Hyprland    0.56.2
+Linux       7.2.3-arch1-3
+Omarchy     4.0.3-1
+Hyprland    0.56.2-2
 BlueZ       5.87-2
 brightnessctl 0.5.1
 ```
 
 `asusctl` was not installed and is not required by the documented workarounds.
+
+The updated kernel identifies the machine through the upstream UX8406CA
+`asus-nb-wmi` DMI quirk. The detachable keyboard still appears as vendor HID
+collections (`0b05:1bf2` when docked), so the repository's userspace HID
+helper remains applicable.
 
 ## Backlight interfaces
 

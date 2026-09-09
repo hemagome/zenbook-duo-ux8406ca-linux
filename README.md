@@ -12,16 +12,16 @@ reproduced on the UX8406CA with a current kernel.
 | Component | Tested version / hardware |
 |---|---|
 | Model | ASUS Zenbook Duo UX8406CA (`UX8406CA_UX8406CA`) |
-| Linux | `7.1.9-arch1-2` |
-| Omarchy | `4.0.2-1` |
-| Hyprland | `0.56.2` |
+| Linux | `7.2.3-arch1-3` |
+| Omarchy | `4.0.3-1` |
+| Hyprland | `0.56.2-2` |
 | BlueZ | `5.87-2` |
 | Boot | Limine `12.6.0-1`, UEFI, Secure Boot off, TPM 2 active |
 | Storage | WD PC SN5000S 1 TB; Windows 11 + LUKS/Btrfs dual boot |
 | Displays | 2× Samsung 2880×1800 at 120 Hz (`eDP-1`, `eDP-2`) |
 
-Results apply to these versions. Re-test after kernel, Hyprland, Omarchy,
-BlueZ or firmware updates.
+Results apply to these versions, inspected on 2026-09-08. Re-test after
+kernel, Hyprland, Omarchy, BlueZ or firmware updates.
 
 ## Compatibility
 
@@ -47,6 +47,14 @@ BlueZ or firmware updates.
 
 Status legend: ✅ Works upstream · 🛠 Workaround required · ⚠️ Partial / needs
 validation · ❌ Not working.
+
+The kernel now includes the [upstream UX8406CA DMI
+quirk](https://github.com/torvalds/linux/commit/7dc6b2d3b5503bcafebbeaf9818112bf367107b4)
+in `asus-nb-wmi` and identifies this laptop correctly. That patch covers
+model-specific WMI event handling; it does not provide the chassis display
+policy, per-panel Omarchy brightness selection, or the detachable keyboard's
+vendor HID controls. Those workarounds remain enabled and were revalidated
+after the update.
 
 ## Quick start
 

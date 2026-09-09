@@ -22,6 +22,10 @@ These working paths are treated as upstream-working. The internal speaker
 report is tracked separately below. Do not add a patch unless a concrete
 regression is reproduced and documented with affected versions.
 
+The updated kernel recognizes the UX8406CA through its upstream ASUS WMI DMI
+quirk. This improves model-specific WMI handling but does not replace the
+Hyprland/Omarchy and vendor-HID workarounds below.
+
 ## Requires a local workaround
 
 1. Hyprland's automatic arrangement placed the internal panels side by side.

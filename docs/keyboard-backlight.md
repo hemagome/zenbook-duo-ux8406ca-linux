@@ -3,9 +3,9 @@
 Tested on:
 
 ```text
-Kernel: 7.1.9-arch1-2
-Omarchy: 4.0.2-1
-Hyprland: 0.56.2
+Kernel: 7.2.3-arch1-3
+Omarchy: 4.0.3-1
+Hyprland: 0.56.2-2
 USB HID: 0b05:1bf2, interface 4
 Bluetooth HID: 0b05:1bf3, vendor collection FF31:0076
 Applicability: Linux universal HID control; Omarchy only provides the current OSD.
@@ -53,7 +53,8 @@ How to revert:
 ./uninstall.sh --fn-mode
 ```
 
-Upstream status: No LED-class interface exists on the tested kernel. The
+Upstream status: No LED-class interface exists on the updated kernel, and
+Omarchy 4.0.3 still requires a `*kbd_backlight*` LED. The
 Bluetooth payload was independently documented by
 [`mytikfy/asus-zenbookduo`](https://github.com/mytikfy/asus-zenbookduo), and
 [`zenbook-duo-daemon`](https://github.com/PegasisForever/zenbook-duo-daemon)

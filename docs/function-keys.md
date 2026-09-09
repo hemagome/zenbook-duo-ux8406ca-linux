@@ -3,9 +3,9 @@
 Tested on:
 
 ```text
-Kernel: 7.1.9-arch1-2
-Omarchy: 4.0.2-1
-Hyprland: 0.56.2
+Kernel: 7.2.3-arch1-3
+Omarchy: 4.0.3-1
+Hyprland: 0.56.2-2
 Keyboard USB ID: 0b05:1bf2
 Keyboard Bluetooth HID ID: 0b05:1bf3
 Applicability: Linux universal HID core; individual desktop actions vary below.
@@ -16,7 +16,7 @@ Through Bluetooth, `F1` generates `KEY_MUTE` and `Fn+F1` generates `KEY_F1`.
 Before initialization, `Fn+Esc` did not toggle Fn Lock on either transport.
 
 Cause: The keyboard exposes transport-specific vendor-control HID collections,
-but the current kernel does not initialize its Fn mode. On USB and Bluetooth,
+but the current kernel still does not initialize its Fn mode. On USB and Bluetooth,
 `Fn+Esc` produces the proprietary input report `5a 4e 00 00 00 00`; userspace
 must configure the keyboard in response. This remains open upstream.
 
@@ -80,7 +80,9 @@ How to revert:
 ./uninstall.sh --fn-mode
 ```
 
-Upstream status: Not fixed. Track
+Upstream status: The kernel now recognizes the UX8406CA through its upstream
+ASUS WMI DMI quirk, but vendor HID Fn initialization and Fn Lock remain not
+fixed. Track
 [`asusctl` issue 25](https://github.com/OpenGamingCollective/asusctl/issues/25).
 The feature reports were independently documented by
 [`zenbook-duo-daemon`](https://github.com/PegasisForever/zenbook-duo-daemon),

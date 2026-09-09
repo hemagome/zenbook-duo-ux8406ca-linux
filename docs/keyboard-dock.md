@@ -4,16 +4,18 @@
 
 ```text
 Tested on: ASUS Zenbook Duo UX8406CA
-Kernel: 7.1.9-arch1-2
-Omarchy: 4.0.2-1
-Hyprland: 0.56.2
+Kernel: 7.2.3-arch1-3
+Omarchy: 4.0.3-1
+Hyprland: 0.56.2-2
 Applicability: Hyprland policy; USB dock detection is Linux universal.
 
 Problem: eDP-2 remains enabled and lit when the keyboard covers it.
 Cause: The kernel exposes the dock transition but does not apply display policy.
 Workaround: Follow the pogo-pin USB device and update the Hyprland monitor rule.
 How to revert: Run ./uninstall.sh --keyboard-dock.
-Upstream status: Secondary-display policy remains unresolved upstream as tested.
+Upstream status: The updated kernel's UX8406CA WMI quirk does not implement
+secondary-display policy; it remains unresolved upstream. The workaround was
+still active and reported `docked` after the update.
 ```
 
 ## Observed dock signal

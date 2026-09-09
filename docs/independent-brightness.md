@@ -4,16 +4,18 @@
 
 ```text
 Tested on: ASUS Zenbook Duo UX8406CA
-Kernel: 7.1.9-arch1-2
-Omarchy: 4.0.2-1
-Hyprland: 0.56.2
+Kernel: 7.2.3-arch1-3
+Omarchy: 4.0.3-1
+Hyprland: 0.56.2-2
 Applicability: Omarchy + Hyprland; direct backlight control is Linux universal.
 
 Problem: Omarchy's slider adjusted intel_backlight for either focused monitor.
 Cause: The generic resolver sees several backlights but has no panel mapping.
 Workaround: A local wrapper supplies a one-device candidate directory per monitor.
 How to revert: Run ./uninstall.sh --brightness.
-Upstream status: Kernel interfaces work; Omarchy has no UX8406CA mapping as tested.
+Upstream status: Kernel interfaces still work, but Omarchy 4.0.3 still resolves
+the generic internal display through one device and has no UX8406CA panel
+mapping. The workaround remains required.
 ```
 
 The kernel already provides correct independent controls:

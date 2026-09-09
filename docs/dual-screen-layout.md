@@ -4,16 +4,17 @@
 
 ```text
 Tested on: ASUS Zenbook Duo UX8406CA
-Kernel: 7.1.9-arch1-2
-Omarchy: 4.0.2-1
-Hyprland: 0.56.2
+Kernel: 7.2.3-arch1-3
+Omarchy: 4.0.3-1
+Hyprland: 0.56.2-2
 Applicability: Hyprland; the reusable Lua file follows Omarchy's config structure.
 
 Problem: Automatic placement arranged the internal panels horizontally.
 Cause: Generic automatic monitor placement does not know the physical chassis layout.
 Workaround: Set both panel modes, scale and logical positions explicitly.
 How to revert: Run ./uninstall.sh --layout or restore ~/.config/hypr/monitors.lua.
-Upstream status: Hardware support works; physical arrangement still needs local policy.
+Upstream status: The updated kernel recognizes the UX8406CA, but physical
+arrangement still needs local Hyprland policy.
 ```
 
 The incorrect automatic result was logically `eDP-1` at `0x0` and `eDP-2` at
