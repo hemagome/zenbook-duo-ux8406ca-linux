@@ -4,8 +4,11 @@
 
 Mitigated on the tested ASUS Zenbook Duo UX8406CA by disabling Intel VMD in
 UEFI. Three consecutive VMD-off Omarchy boots completed without an NVMe
-timeout. A fresh boot on 2026-09-08 also completed without an NVMe timeout;
-VMD remains disabled.
+timeout. A fresh boot on 2026-09-08 also completed without an NVMe timeout.
+The 2026-10-19 update ships the MTL016 driver fix. A subsequent user test
+with VMD enabled failed to mount `/dev/mapper/omarchy_root`, so successful
+VMD-on operation remains unvalidated. The current session again uses direct
+NVMe without an exposed VMD controller; see the follow-up below.
 
 Tested configuration:
 
@@ -84,9 +87,68 @@ pull requests for a change like this. A patch titled **“PCI: vmd: Delay
 interrupt handling on MTL VMD controller”** was submitted on 2024-09-02 for
 the exact `8086:7d0b` controller and MTL016 symptom. Reviewers rejected a fixed
 delay as an ordering guarantee and requested a proper register-read solution.
-No revised patch or merged fix was found as of 2026-09-08, and current upstream
-`vmd.c` still does not contain the proposed MTL016/`8086:7d0b` quirk. The
-updated local kernel therefore does not justify re-enabling VMD.
+No revised patch or merged fix was found in the 2026-09-08 review. That
+conclusion is historical and is superseded by the packaged fix below.
+
+### Update — 2026-10-19: fix included in the running Omarchy kernel
+
+`linux-omarchy 7.2.8-9` includes
+`0704-pci-vmd-meteor-lake-mtl016-flush.patch`, which adds a PCI configuration
+read of the initiating device before delivering its interrupt. It sets
+`VMD_FEAT_INTERRUPT_QUIRK` for **`8086:7d0b`**, the controller previously
+observed on this laptop. The accompanying `0706` patch extends the mechanism
+to Arrow Lake's `8086:ad0b`.
+
+This was verified beyond the package recipe: the installed `vmd.ko.zst`
+contains the guarded 16-bit read before `generic_handle_irq`, and the PCI
+entries for `7d0b` and `ad0b` contain driver data `0xae` (including quirk bit 7).
+The fix is supplied by Omarchy without a local module override. The upstream
+PCI tree also carries the corresponding fix; presence in every vanilla/stable
+kernel must be checked separately.
+
+The initial inspection boot used direct NVMe at `0000:01:00.0`, with no VMD controller
+exposed and no NVMe timeout. This verifies the existing VMD-off mitigation,
+**not** the new fix under VMD. Leave the working UEFI setting unchanged until a
+controlled VMD-on test can cover multiple boots and sustained I/O, including
+the Windows boot implications above. No BIOS setting was changed during that initial inspection.
+
+### User VMD-on boot attempt — 2026-10-19
+
+The user enabled Intel VMD in BIOS and then could not boot into Omarchy.
+The reported message was:
+
+```text
+ERROR: Failed to mount '/dev/mapper/omarchy_root' on real root...
+```
+
+**Result: VMD-on boot attempted and failed at root mounting.** This supersedes
+"not tested" for the boot attempt, but does not establish whether the MTL016
+interrupt-ordering fix works. The message alone does not distinguish a missing
+root mapping, an inaccessible underlying SSD, a decryption problem, a storage
+timeout or a filesystem-mount failure. The failed boot's kernel version,
+complete preceding messages and initramfs contents were not captured.
+
+A read-only check after the report shows kernel `7.2.8-9-omarchy` and direct
+NVMe at `0000:01:00.0`, with no exposed VMD controller. This is the working
+VMD-off configuration again; the exact BIOS recovery steps were not reported.
+
+One hypothesis is that `vmd` was absent from, or not loaded by, the initramfs
+used for the failed boot. The current mkinitcpio configuration uses `autodetect`,
+`block` and `encrypt`, and does not explicitly add `vmd` to `MODULES`; this
+**does not prove the module is missing**, since hooks can include modules.
+The actual boot image could not be inspected with current read access to
+`/boot`. A missing-module failure has a historical precedent in
+[Arch FS#68704](https://bugs.archlinux.org/task/68704), fixed in mkinitcpio 31;
+that old report is not evidence of the same bug in this installation.
+
+Retain the working VMD-off setting. Before another VMD-on attempt, inspect
+the actual boot entry and its initramfs for `vmd`, NVMe and encrypted-root
+support. If the attempt still fails, capture the preceding storage/decryption
+messages and device/mapping availability before attributing the mount error
+to MTL016. No boot images or system configuration were changed in this follow-up.
+
+See the [full update audit](revalidation-2026-10-19.md) for immutable patch
+links and evidence limits.
 
 Tracking links:
 
