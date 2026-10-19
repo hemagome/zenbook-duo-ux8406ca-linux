@@ -7,6 +7,20 @@ For the distinction between Linux-wide device support and the particular
 Hyprland/Omarchy integrations shipped here, see the
 [workaround applicability matrix](applicability.md).
 
+## Latest update review — 2026-10-19
+
+Inspected Omarchy `4.0.5-1`, running kernel `7.2.8-9-omarchy` and Hyprland
+`0.56.2-4`. The kernel now ships the Intel VMD MTL016 fix, but a user
+VMD-on boot attempt failed to mount `/dev/mapper/omarchy_root`; successful
+VMD-on validation remains blocked. Existing display/keyboard integrations remain necessary
+based on the installed code and exposed interfaces. User-assisted playback
+after idle and one suspend/resume cycle passed, with clean amplifier logs
+through 13:45. The user then confirmed working audio after several reboots (exact count not recorded); no
+post-reboot journal was inspected for that follow-up. The intermittent audio
+bug subsequently recurred at 15:10 on `7.2.8-9-omarchy`, with the same
+`PUP_DONE_MASK: -110` error in both amplifiers. See the
+[full revalidation](revalidation-2026-10-19.md) for the test boundaries.
+
 ## Works without repository workarounds
 
 - Both OLED panels, including 2880×1800 at 120 Hz
@@ -44,10 +58,16 @@ Hyprland/Omarchy and vendor-HID workarounds below.
 
 ## Intermittent speaker silence under investigation
 
-The internal speakers have been reported to stop producing sound randomly even
-though they work in other boots. No trigger, root cause, or confirmed fix is
-known yet. See the [speaker audio report](intermittent-speaker-audio.md) for
-the current evidence and the diagnostics to capture during the next failure.
+The internal speakers have been confirmed to stop producing sound
+intermittently even though the software audio path remains available. The
+latest confirmed reproduction used running kernel `7.2.8-9-omarchy` on
+2026-10-19: both CS35L41 amplifiers reported `PUP_DONE_MASK: -110` at 15:10:12
+and 15:10:39 after a reboot. Firmware and ALSA initialized, and the default
+Speaker output and hardware mixer were unmuted. This followed successful
+playback, idle recovery, one suspend/resume cycle and several user-reported
+reboots earlier that day. The updated kernel does not prevent the intermittent
+failure. See the [speaker audio report](intermittent-speaker-audio.md) for
+the evidence and boot timeline.
 
 ## Requires an event-driven workaround
 

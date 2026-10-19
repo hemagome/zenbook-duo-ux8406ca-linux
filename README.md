@@ -12,16 +12,28 @@ reproduced on the UX8406CA with a current kernel.
 | Component | Tested version / hardware |
 |---|---|
 | Model | ASUS Zenbook Duo UX8406CA (`UX8406CA_UX8406CA`) |
-| Linux | `7.2.3-arch1-3` |
-| Omarchy | `4.0.3-1` |
-| Hyprland | `0.56.2-2` |
+| Running Linux | `7.2.8-9-omarchy` (`linux-omarchy 7.2.8-9`) |
+| Alternate installed Linux | `7.2.11.arch1-1` (not boot-tested in this review) |
+| Omarchy | `4.0.5-1` |
+| Hyprland | `0.56.2-4` |
 | BlueZ | `5.87-2` |
 | Boot | Limine `12.6.0-1`, UEFI, Secure Boot off, TPM 2 active |
 | Storage | WD PC SN5000S 1 TB; Windows 11 + LUKS/Btrfs dual boot |
 | Displays | 2× Samsung 2880×1800 at 120 Hz (`eDP-1`, `eDP-2`) |
 
-Results apply to these versions, inspected on 2026-09-08. Re-test after
-kernel, Hyprland, Omarchy, BlueZ or firmware updates.
+The software inventory was inspected on **2026-10-19**. Feature history below
+also includes earlier physical tests; the update review did not repeat every
+hardware interaction. See the [2026-10-19 revalidation](docs/revalidation-2026-10-19.md)
+for evidence, native fixes, retained workarounds and untested cases.
+
+The running Omarchy kernel now includes the **Intel VMD MTL016 interrupt-ordering
+fix**, verified in its installed module. A user test with VMD enabled failed
+to mount `/dev/mapper/omarchy_root`; the fix has no successful VMD-on
+validation on this machine. The current session uses direct NVMe again.
+Internal-speaker playback passed idle, one suspend/resume cycle and several
+user-reported reboots earlier on 2026-10-19. However, the same amplifier
+power-up timeout **recurred on `7.2.8-9-omarchy` at 15:10** in both CS35L41
+amplifiers. The intermittent audio bug remains reproduced on the current kernel.
 
 ## Compatibility
 
@@ -31,7 +43,7 @@ kernel, Hyprland, Omarchy, BlueZ or firmware updates.
 | Both internal panels at 120 Hz | ✅ Works upstream | Both modes are exposed normally |
 | Touch and stylus on both panels | ✅ Works upstream | Two touch and two stylus devices detected |
 | Wi-Fi, Bluetooth, microphone, webcam | ✅ Works upstream | No repository workaround required |
-| Internal speakers | ⚠️ Partial / needs validation | Normally work, but intermittent silence has been reported; see [speaker audio investigation](docs/intermittent-speaker-audio.md) |
+| Internal speakers | ⚠️ Partial / bug reproduced | Reproduced on `7.2.8-9-omarchy`, 2026-10-19 at 15:10, after earlier successful tests and reboots; both amplifiers report `PUP_DONE_MASK: -110`; see [speaker audio investigation](docs/intermittent-speaker-audio.md) |
 | LUKS, Btrfs, Limine, Windows dual boot | ✅ Works upstream | Installation-specific; keep backups |
 | Vertical dual-screen layout | 🛠 Workaround required | Explicit Hyprland positions and scale |
 | Independent brightness in Omarchy UI | 🛠 Workaround required | Per-monitor backlight wrapper |
@@ -46,15 +58,16 @@ kernel, Hyprland, Omarchy, BlueZ or firmware updates.
 | Automatic touch mapping validation | ⚠️ Partial / needs validation | Input exists; mapping across layout changes needs testing |
 
 Status legend: ✅ Works upstream · 🛠 Workaround required · ⚠️ Partial / needs
-validation · ❌ Not working.
+validation or has a reproduced bug · ❌ Not working.
 
 The kernel now includes the [upstream UX8406CA DMI
 quirk](https://github.com/torvalds/linux/commit/7dc6b2d3b5503bcafebbeaf9818112bf367107b4)
 in `asus-nb-wmi` and identifies this laptop correctly. That patch covers
 model-specific WMI event handling; it does not provide the chassis display
 policy, per-panel Omarchy brightness selection, or the detachable keyboard's
-vendor HID controls. Those workarounds remain enabled and were revalidated
-after the update.
+vendor HID controls. Those workarounds remain enabled. The latest review verified their static
+integration and current docked state; physical key presses, Bluetooth
+reconnection and dock transitions still need repeat testing.
 
 ## Quick start
 
